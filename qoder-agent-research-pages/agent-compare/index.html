@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>三方对比：QoderWork / OpenClaw / Hermes</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;--line:#2a3340;--fg:#e6edf3;--mut:#8b96a5;--acc:#4dd6c1;--acc2:#7aa2f7;--qw:#c89bf0;--oc:#f0a868;--hm:#7ad6a0}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.72}
+.kk{color:var(--acc);font-weight:600}
+a{color:var(--acc2);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{display:flex;min-height:100vh}
+.side{width:280px;flex:0 0 280px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--line);padding:18px 12px}
+.brand{font-weight:800;font-size:16px;padding:6px 10px 2px;color:#fff}
+.brand small{display:block;color:var(--mut);font-weight:500;font-size:11px;margin-top:3px}
+.nav-sec{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin:16px 10px 6px}
+.nav-item{display:block;padding:6px 10px;border-radius:7px;color:var(--fg);font-size:13px;margin:1px 0}
+.nav-item:hover{background:var(--bg3)}
+.nav-item.active{background:linear-gradient(90deg,rgba(77,214,193,.16),transparent);color:var(--acc);font-weight:600}
+.main{flex:1;min-width:0;max-width:1080px;margin:0 auto;padding:0 40px 120px}
+.hero{padding:50px 0 26px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:32px;margin:0 0 8px;color:#fff}
+.hero .sub{color:var(--mut);max-width:780px}
+.badges{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.badge{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:12.5px;color:var(--mut)}
+.badge.qw b{color:var(--qw)}.badge.oc b{color:var(--oc)}.badge.hm b{color:var(--hm)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0 6px}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .n{font-size:23px;font-weight:800;color:#fff}.stat .l{color:var(--mut);font-size:12px;margin-top:2px}
+h2.domain-title{font-size:23px;margin:44px 0 14px;padding-top:18px;color:#fff;display:flex;align-items:center;gap:11px;border-top:1px solid var(--line)}
+.dot{font-size:21px}
+h2.plain{font-size:23px;margin:44px 0 14px;padding-top:18px;color:#fff;border-top:1px solid var(--line)}
+section{scroll-margin-top:20px}
+.md h2{font-size:18px;margin:24px 0 9px;color:#fff}
+.md h3{font-size:15.5px;margin:18px 0 7px;color:var(--acc)}
+.md p{margin:9px 0}.md ul,.md ol{margin:7px 0;padding-left:22px}.md li{margin:3px 0}
+.md code{background:#0a0e14;border:1px solid var(--line);border-radius:5px;padding:1.5px 6px;font-size:12.6px;font-family:"SF Mono",ui-monospace,Menlo,monospace;color:#ffd9a0}
+.md pre{background:#0a0e14;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;margin:13px 0}
+.md pre code{background:none;border:none;padding:0;color:#c9d3df;font-size:12.5px}
+.md table,.cmp{border-collapse:collapse;width:100%;margin:13px 0;font-size:13px;display:block;overflow-x:auto}
+.md th,.md td,.cmp th,.cmp td{border:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top}
+.md th,.cmp th{background:var(--bg3);color:#fff;font-weight:600;white-space:nowrap}
+.md tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+.md blockquote{border-left:3px solid var(--acc);margin:11px 0;padding:4px 14px;color:var(--mut);background:rgba(77,214,193,.05)}
+.md strong{color:#fff}
+.mermaid{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0;text-align:center;overflow-x:auto}
+.cmp.tldr{display:table} .cmp.tldr th:nth-child(2){color:var(--qw)} .cmp.tldr th:nth-child(3){color:var(--oc)} .cmp.tldr th:nth-child(4){color:var(--hm)}
+.note{background:rgba(122,162,247,.08);border:1px solid rgba(122,162,247,.3);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:13.5px;color:#bcd0f5}
+.foot{color:var(--mut);font-size:12px;text-align:center;padding:40px 0 0;border-top:1px solid var(--line);margin-top:50px}
+@media(max-width:880px){.side{display:none}.main{padding:0 18px 80px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style><style>
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --ink: #17202a;
+  --muted: #667085;
+  --line: #d9dee7;
+  --soft: #eef2f6;
+  --accent: #1463ff;
+  --accent-dark: #0b3b94;
+  --code-bg: #111827;
+  --code-ink: #f9fafb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent-dark); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.site-title {
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.site-nav a {
+  padding: 6px 9px;
+  border-radius: 6px;
+  color: #344054;
+  font-size: 13px;
+}
+.site-nav a:hover {
+  background: var(--soft);
+  text-decoration: none;
+}
+.page-shell {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 30px 22px 56px;
+}
+.hero {
+  padding: 34px 0 24px;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: 34px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.hero p {
+  max-width: 880px;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.card {
+  display: block;
+  padding: 18px;
+  min-height: 154px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+.card:hover {
+  text-decoration: none;
+  border-color: #9db7ff;
+  box-shadow: 0 8px 24px rgba(20, 99, 255, .08);
+}
+.card span {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.content-card {
+  padding: 28px 32px 36px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  overflow: hidden;
+}
+.content-card h1,
+.content-card h2,
+.content-card h3,
+.content-card h4 {
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+.content-card h1 { font-size: 30px; margin: 0 0 18px; }
+.content-card h2 { font-size: 23px; margin: 30px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.content-card h3 { font-size: 19px; margin: 24px 0 10px; }
+.content-card h4 { font-size: 16px; margin: 20px 0 8px; }
+.content-card p { margin: 10px 0; }
+.content-card ul,
+.content-card ol { padding-left: 1.4em; }
+.content-card li { margin: 4px 0; }
+.content-card blockquote {
+  margin: 16px 0;
+  padding: 8px 16px;
+  border-left: 4px solid var(--accent);
+  background: #f8fbff;
+  color: #344054;
+}
+.content-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .92em;
+}
+.content-card p code,
+.content-card li code,
+.content-card td code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #eef2f6;
+  color: #111827;
+}
+.content-card pre {
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  line-height: 1.5;
+}
+.content-card pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.content-card table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 13px;
+}
+.content-card th,
+.content-card td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.content-card th {
+  background: #f1f5f9;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.content-card tr:nth-child(even) td { background: #fbfcfe; }
+.content-card hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 26px 0;
+}
+.source-note {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 820px) {
+  .site-header-inner { align-items: flex-start; flex-direction: column; }
+  .site-nav { justify-content: flex-start; }
+  .hero h1 { font-size: 28px; }
+  .content-card { padding: 22px 18px; }
+}
+</style></head>
+<body>
+<header class="site-header">
+<div class="site-header-inner">
+<a class="site-title" href="/qoder-agent-research-pages/">Qoder Research Pages</a>
+<nav aria-label="站点导航" class="site-nav"><a href="/qoder-agent-research-pages/">首页</a>
+<a href="/qoder-agent-research-pages/agent-research/">Qoder / QD Agent 面试研究总报告</a>
+<a href="/qoder-agent-research-pages/agent-compare/">当前：三方对比：QoderWork / OpenClaw / Hermes</a>
+<a href="/qoder-agent-research-pages/digital-employee-market/">AI 数字员工赛道产品调研报告</a>
+<a href="/qoder-agent-research-pages/qoderwork-deep-dive/">QoderWork 逆向架构全解</a></nav>
+</div>
+</header>
+
+<section class="page-shell hero">
+<h1>三方对比：QoderWork / OpenClaw / Hermes</h1>
+<p>围绕 QoderWork、OpenClaw、Hermes 的产品能力、运行时架构和证据边界对比。</p>
+<p class="source-note">Source: 三方对比-QoderWork-OpenClaw-Hermes.html</p>
+</section>
+<div class="wrap">
+<aside class="side"><div class="brand">QoderWork × OpenClaw × Hermes<small>三方逐维度函数级对比 · 13 维</small></div><a class="nav-item nav-top" href="#overview">总览 Overview</a><a class="nav-item nav-top" href="#tldr">速览对照表</a><a class="nav-item nav-top" href="#arch">三系架构定位</a><div class="nav-sec">13 个对比维度</div><a class="nav-item" href="#d1">🔁 Agent Loop / 对话循环</a><a class="nav-item" href="#d2">🛠️ 工具 + 权限 / 护栏 / 沙箱</a><a class="nav-item" href="#d3">🧠 记忆 / 上下文 / 压缩</a><a class="nav-item" href="#d4">🧩 技能 / 插件 / 命令</a><a class="nav-item" href="#d5">🔌 MCP 集成</a><a class="nav-item" href="#d6">💬 渠道 / IM / 网关</a><a class="nav-item" href="#d7">🌐 浏览器 / Web / Computer Use</a><a class="nav-item" href="#d8">🎙️ 语音 / 多模态（TTS/STT/图/视频）</a><a class="nav-item" href="#d9">🔐 鉴权 / 凭据 / 模型 Provider</a><a class="nav-item" href="#d10">🗄️ 会话 / 状态 / 存储</a><a class="nav-item" href="#d11">♻️ 生命周期 / 网关 / 调度</a><a class="nav-item" href="#d12">📈 自省 / 审查 / 安全审计</a><a class="nav-item" href="#d13">🖥️ CLI / TUI / UI</a><div class="nav-sec">参考</div><a class="nav-item nav-top" href="#method">方法与边界</a></aside>
+<main class="main">
+<div class="hero" id="overview">
+<h1>QoderWork × OpenClaw × Hermes 三方逐维度对比</h1>
+<div class="sub">三个 agent 运行时的函数级对标，颗粒度对齐 QoderWork 深挖报告：每维度含<b>三列能力对照表</b>、三方各自函数级实现（带 <code>文件:行号</code>）、三方 mermaid 对比图、关键差异结论。QoderWork 取自 <code>QoderWork-arm64.dmg</code> 反编译；OpenClaw 取自 npm 包 <code>openclaw@2026.3.24</code>（未压缩 ESM）；Hermes 取自 <code>NousResearch/hermes-agent</code>（Python 源码）。</div>
+<div class="badges">
+<span class="badge qw">QoderWork <b>0.5.9 · 桌面GUI/单引擎(Electron+qodercli)</b></span>
+<span class="badge oc">OpenClaw <b>2026.3.24 · IM优先编排器(JS+pi-ai)</b></span>
+<span class="badge hm">Hermes <b>NousResearch · 终端任务agent(Python)</b></span>
+</div>
+<div class="stats"><div class="stat"><div class="n">13</div><div class="l">对比维度</div></div><div class="stat"><div class="n">3</div><div class="l">深挖系统</div></div><div class="stat"><div class="n">QoderWork</div><div class="l">桌面/单引擎</div></div><div class="stat"><div class="n">OpenClaw·Hermes</div><div class="l">IM·终端</div></div></div>
+<div class="note">📌 <b>三方定位（一句话）</b>：<b style="color:var(--qw)">QoderWork</b>=「桌面 GUI agent」固定驱动单一 qodercli，强在桌面操控(真机 Chrome/computer-use)、Legokit 隔离运行时、商用产品化；<b style="color:var(--oc)">OpenClaw</b>=「IM 优先编排器」把 claude/codex/gemini 当 provider 编排，强在多平台 IM 接入与向量记忆；<b style="color:var(--hm)">Hermes</b>=「终端任务 agent(纯 Python)」自持循环，强在 provider 广度/凭据韧性、双向 MCP、kanban 多 agent、自我改进、可移植(含 Android)。</div>
+</div>
+<section id="tldr"><h2 class="plain">⚡ 速览对照表（13 维 × 三方一句话）</h2>
+<table class="cmp tldr"><thead><tr><th>维度</th><th>QoderWork</th><th>OpenClaw</th><th>Hermes</th></tr></thead><tbody><tr><td class="kk">Agent Loop</td><td>底层 **ReAct** + 强制 TodoWrite活计划 + plan模式(ExitPlanMode)+验证 → 体感最像 think-plan-act；固定单引擎 qodercli</td><td>底层 **ReAct**(pi-ai stopReason)+ thinkLevel off/high/xhigh + /think指令；无常驻todo；多引擎编排</td><td>底层 **ReAct** + `&lt;think&gt;`推理标签 + 可选todo_tool + kanban分解大任务；自持进程内循环</td></tr>
+<tr><td class="kk">工具/护栏</td><td>canUseTool 逐次门控+人审挂起 + TCC 7权限 + hvkit微VM沙箱 + computer-use</td><td>glob 工具策略 + sandbox-paths + 循环熔断</td><td>82工具自注册 + 失败/无进展熔断 + path/url安全 + Tirith验签策略</td></tr>
+<tr><td class="kk">记忆</td><td>FTS5 trigram 词法检索(每agent独立库)+记忆反思</td><td>向量 embedding(5家)+ qmd + flush</td><td>可插拔 MemoryProvider(prefetch后台预取)+ 可插拔 ContextEngine</td></tr>
+<tr><td class="kk">技能/插件</td><td>四层 Skill/Plugin/命令/**Legokit隔离运行时** + 行业插件包</td><td>commands-registry + 三源技能(含remote) + clawhub市场</td><td>md bundle热重载 + Python插件(可挂Web/换上下文引擎)</td></tr>
+<tr><td class="kk">MCP</td><td>client连接池 + 内置server(Apple/浏览器/wecom)+ MCP-UI app</td><td>client(mcp-cli管配置)</td><td>双向：client + **server(暴露自身给Claude Code驱动)** + tool_search懒激活</td></tr>
+<tr><td class="kk">渠道/网关</td><td>4(wecom/钉钉/飞书/Teams)+配对审批,桌面附带</td><td>10平台(含LINE/iMessage/Zalo)+allow-from+去重管线,IM优先</td><td>10+平台(含matrix/sms/email/irc)+可插件平台+PairingStore,网关优先</td></tr>
+<tr><td class="kk">浏览器/Web</td><td>**控制用户真实Chrome(CDP扩展)+ 全屏computer-use**</td><td>媒体理解(语音转写/图)+web搜索;浏览器委派coding-agent</td><td>CDP多后端(browser_use/browserbase/firecrawl)+4家web搜索+vision</td></tr>
+<tr><td class="kk">语音/多模态</td><td>输入语音:ASR云WS+Fn键听写+DJI麦;无生成栈</td><td>IM语音收发(tts+transcribe)</td><td>TTS/STT/图生/视频生 四类provider全可插拔 + Termux安卓录音</td></tr>
+<tr><td class="kk">鉴权/Provider</td><td>统一Qoder账号+OAuth+safeStorage+WASM鉴权+scene模型策略</td><td>pi-ai+9provider+Copilot/Codex OAuth+auth-profiles</td><td>8集成(含bedrock/azure)+凭据池故障转移+**摄取外部CLI凭据**+跨会话限流</td></tr>
+<tr><td class="kk">会话/存储</td><td>SQLite drizzle 13表+FTS5;chat带**git worktree+PR**</td><td>文件式(.session+jsonl)+写锁+session-fork+group/thread键</td><td>SQLite state.db+**kanban看板(decompose/swarm多agent)**+/branch</td></tr>
+<tr><td class="kk">生命周期/调度</td><td>桌面Electron:22任务错峰+electron-updater+ARMS RUM/OTel遥测</td><td>heartbeat(15m)+外部watchdog.sh+npm install</td><td>完整cron(锁+at-most-once+降权+注入防护)+memory_monitor+drain+崩溃取证</td></tr>
+<tr><td class="kk">自省/审计</td><td>自我改进闭环:skill_suggest(待批准)+nudge复盘+记忆反思</td><td>安全态势审计(audit deep/nondeep:技能/插件/symlink/权限)</td><td>自我改进:background_review(只读复盘)+curator策展+技能AST扫描</td></tr>
+<tr><td class="kk">CLI/TUI/UI</td><td>桌面GUI:Electron React+tRPC+artifact+MCP-UI+Canvas webview</td><td>IM优先+control-ui Web控制台+commander CLI(偏运维)+引导向导</td><td>终端优先:REPL(1.5万行)+90子命令+curses/Ink/Web三套TUI+皮肤</td></tr></tbody></table></section>
+<section id="arch"><h2 class="plain">🗺️ 三系架构定位</h2>
+<pre class="mermaid">flowchart TB
+  subgraph QW["QoderWork · 桌面 GUI agent (Electron)"]
+    direction TB
+    QWe["UnifiedChatExecutor.executeTask"]
+    QWe --&gt; QWsdk["qoder-agent-sdk → 固定 qodercli (stdio stream-json)"]
+    QWe --&gt; QWg["GUI: chat-view/artifact/MCP-UI/Canvas"]
+    QWe --&gt; QWv["hvkit 微VM + computer-use(控制真机)"]
+    QWm["FTS5 trigram 记忆 + Legokit 隔离运行时"] --&gt; QWe
+    QWdb[("SQLite 13表 + chat带git worktree/PR")] --&gt; QWe
+  end
+  subgraph OC["OpenClaw · IM 优先编排器 (JS)"]
+    direction TB
+    OCe["runAgentTurnWithFallback"]
+    OCe --&gt; OCcli["外部CLI: claude/codex/cursor/gemini/qwen"]
+    OCe --&gt; OCpi["嵌入引擎 @mariozechner/pi-ai"]
+    OCe --&gt; OCch["10渠道: TG/Discord/Slack/WA/Signal/LINE/iMessage..."]
+    OCmem["向量 embedding 记忆"] --&gt; OCe
+    OCsess[("文件会话 .session + jsonl")] --&gt; OCe
+  end
+  subgraph HM["Hermes · 终端任务 agent (Python)"]
+    direction TB
+    HMl["进程内循环 run_conversation
+迭代预算/中断//steer/护栏"]
+    HMl --&gt; HMad["适配器: anthropic/bedrock/azure/gemini/codex/copilot"]
+    HMl --&gt; HMgw["gateway: TG/Discord/Slack/WA/Signal/matrix/sms/irc"]
+    HMl --&gt; HMmcp["MCP client + server(被 Claude Code 驱动)"]
+    HMmem["可插拔 MemoryProvider + ContextEngine"] --&gt; HMl
+    HMdb[("SQLite state.db + kanban swarm")] --&gt; HMl
+    HMrev["background_review 自省 + curator 策展"] --&gt; HMl
+  end</pre></section>
+<section class="domain" id="d1"><h2 class="domain-title"><span class="dot">🔁</span>Agent Loop / 对话循环</h2><div class="md"><blockquote>
+<p>QoderWork 证据 <code>main.pretty.js</code>(反编译美化)；OpenClaw <code>dist/*.runtime</code>；Hermes <code>hermes-agent/*.py</code>。</p>
+</blockquote>
+<h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>固定单引擎</strong>。renderer 经 tRPC → <code>UnifiedChatExecutor.executeTask</code> → 自家 <code>@ali/qoder-agent-sdk-next</code> 经 <code>ProcessTransport</code> 以 <strong>stdio + stream-json</strong> 驱动唯一的 <code>qodercli</code> 二进制；主进程消费事件流回推 GUI。</li>
+<li><strong>OpenClaw</strong>：<strong>多引擎编排器</strong>。<code>runAgentTurnWithFallback</code> 包模型回退，底下要么 spawn 外部 CLI（claude/codex/cursor/gemini/qwen，<code>runCliAgent</code>），要么用嵌入式 <code>@mariozechner/pi-ai</code>；消费统一事件流回推 IM。</li>
+<li><strong>Hermes</strong>：<strong>自持进程内循环</strong>。<code>run_conversation</code> 自己跑 while 循环，直接调 provider 适配器 API，迭代预算 + 中断 + <code>/steer</code> + 护栏全自管。</li>
+</ul>
+<blockquote>
+<p>三者恰好是「单引擎绑定 / 多引擎编排 / 自持循环」三种 agent 运行时范式。</p>
+</blockquote>
+<h2>0.5 认知范式：ReAct 还是 Think-Plan-Act？（核心）</h2>
+<p><strong>结论：三者底层都是 ReAct</strong>（交错的「推理→工具→观察」单环，由 <code>stopReason==toolUse</code> / <code>finish_reason==tool_calls</code> 驱动是否再转一圈；都<strong>没有</strong>独立的"先出完整计划再照计划执行"的 plan-and-execute 引擎）。差别在 ReAct 之上叠了多少<strong>显式规划脚手架</strong>——这条轴从重到轻是 QoderWork ＞ Hermes ＞ OpenClaw：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底层环</td>
+<td>ReAct（qodercli 内）</td>
+<td>ReAct（pi-ai stopReason）</td>
+<td>ReAct（while + finish_reason）</td>
+</tr>
+<tr>
+<td>先思考(extended thinking)</td>
+<td>✅ maxThinkingTokens</td>
+<td>✅ thinkLevel off/high/<strong>xhigh</strong></td>
+<td>✅ <code>&lt;think&gt;/&lt;thinking&gt;</code> 标签</td>
+</tr>
+<tr>
+<td>思考强度可调</td>
+<td>会话级</td>
+<td>✅ 指令 <code>/think</code> <code>/reasoning</code> 临时拉高</td>
+<td>provider 级</td>
+</tr>
+<tr>
+<td>活计划(TodoList)</td>
+<td>✅ <strong>强制 TodoWrite</strong>(几乎所有任务，渲染成 widget)</td>
+<td>❌ 无常驻 todo 工具</td>
+<td>⭕ <code>todo_tool</code> 可选(不强制)</td>
+</tr>
+<tr>
+<td>显式"先规划"模式</td>
+<td>✅ <strong>plan 模式</strong>(只读研究→<code>ExitPlanMode</code>→执行)</td>
+<td>⭕ <code>/plan</code> 指令(轻)</td>
+<td>⭕ kanban <code>decompose/specify</code>(重任务)</td>
+</tr>
+<tr>
+<td>完成后验证</td>
+<td>✅ <code>&lt;verification_step&gt;</code></td>
+<td>—</td>
+<td>task_completion_guidance</td>
+</tr>
+<tr>
+<td>形态归类</td>
+<td><strong>plan-aware ReAct</strong>(最接近 think-plan-act 体感)</td>
+<td><strong>纯 ReAct + 可调思考</strong></td>
+<td><strong>ReAct + 显式推理 + 可选计划</strong></td>
+</tr>
+</tbody>
+</table>
+<h3>各家证据</h3>
+<ul>
+<li><strong>QoderWork = ReAct 之上压了最重的"计划"层</strong>：系统提示词强制 <code>TodoWrite</code>（main.pretty.js:79088 <em>"MUST use TodoWrite for virtually ALL tasks that involve tool calls"</em>），规定工作流 <code>Review Skills / AskUserQuestion → TodoWrite → Actual work</code>（:79098）+ 收尾 <code>&lt;verification_step&gt;</code>；另有独立 <strong>plan 模式</strong>（<code>mode:plan|agent</code>，plan 下只能改 <code>.md</code>、其余工具被 block，靠 <code>ExitPlanMode</code> 工具退出进入执行，:42694/42794/78404）。所以它<strong>体感最像 think-plan-act</strong>：先列 TODO（计划）→逐项做（ReAct）→验证；但本质仍是 ReAct，TODO 只是"活计划清单"而非死计划。IM 模式下禁用 TodoWrite（:67015，无 widget 可渲染）。</li>
+<li><strong>⚠️ 不是黑盒</strong>：以上不止来自主进程的提示词拼装——<code>qodercli</code> 二进制（Bun <code>--compile</code>，<strong>未开 <code>--bytecode</code>，JS 源码原样内嵌</strong>）里可直接 <code>strings</code> 抽到：系统提示词 <code>"You are QoderWork, a desktop agentic assistant developed by Qoder team..."</code>、<code># Identity</code> 段、<code>ExitPlanMode</code>/<code>TodoWrite</code>/<code>AskUserQuestion</code> 提示原文（"use this tool to clarify requirements or choose between approaches BEFORE finalizing your plan"）、以及与 Claude Code 一致的工具描述（<code>"Executes a given bash command and returns its output."</code>/<code>"Reads a file from the local filesystem..."</code>）。即 qodercli 的 ReAct+plan 范式是<strong>可从二进制证实</strong>的，非推测（见下 §6.3 方法）。</li>
+<li><strong>OpenClaw = 最精简的纯 ReAct</strong>：pi-ai 按 <code>stopReason==="toolUse"?继续:停</code>（pi-embedded:99863）单环跑，<strong>无常驻 todo/计划工具</strong>；规划靠<strong>思考档位</strong>与<strong>内联指令</strong>临时调节——<code>thinkLevel: off/high/xhigh</code>（xhigh 受 <code>supportsXHighThinking</code> 门控）、用户消息里写 <code>/think</code>/<code>/reasoning</code>/<code>/plan</code>/fast 等 directives 即时改本轮推理强度。契合 IM 短对话：少仪式、要快。</li>
+<li><strong>Hermes = 带显式推理标签的 ReAct，计划按需上</strong>：模型产出 <code>&lt;think&gt;/&lt;thinking&gt;/&lt;reasoning&gt;/&lt;thought&gt;</code> 块（<code>think_scrubber</code>/<code>convert_scratchpad_to_think</code>）= reason-before-act；<code>todo_tool</code>（<code>VALID_STATUSES=pending/in_progress/completed/cancelled</code>，<code>write(merge|replace)</code>）是<strong>可选</strong>活计划；真正的"先规划"留给 <strong>kanban</strong>（<code>kanban_decompose</code>/<code>kanban_specify</code>/<code>kanban_swarm</code>）处理大任务/多 agent。即轻任务直接 ReAct，重任务才显式分解。</li>
+</ul>
+<h3>三种循环形态</h3>
+<pre class="mermaid">flowchart LR
+  subgraph QW[QoderWork: plan-aware ReAct]
+    direction TB
+    QA[clarify/AskUserQuestion] --&gt; QB[TodoWrite 列活计划]
+    QB --&gt; QC{ReAct: 推理→工具→观察}
+    QC --&gt;|逐项勾掉 todo| QC
+    QC --&gt; QD[verification_step]
+    QP([plan 模式: 只读研究→ExitPlanMode]) -.先于.-&gt; QB
+  end
+  subgraph OC[OpenClaw: 纯 ReAct + 可调思考]
+    direction TB
+    OA["thinkLevel/指令 设定本轮思考强度"] --&gt; OB{ReAct: stopReason toolUse?}
+    OB --&gt;|是| OB
+    OB --&gt;|否| OD[结束]
+  end
+  subgraph HM[Hermes: ReAct + 显式推理]
+    direction TB
+    HA["think 标签推理"] --&gt; HB{ReAct: finish_reason tool_calls?}
+    HB --&gt;|是| HA
+    HB --&gt;|否| HD[结束]
+    HK([kanban decompose/specify]) -.大任务先分解.-&gt; HA
+  end
+</pre>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>循环归属</td>
+<td>qodercli 内（JS 源码可从二进制提取，见 §6.3）</td>
+<td>下层引擎(pi/外部CLI)</td>
+<td>✅ 进程内自跑</td>
+</tr>
+<tr>
+<td>引擎</td>
+<td>固定 qodercli(1个)</td>
+<td>claude/codex/cursor/gemini/qwen + pi-ai</td>
+<td>直连 provider 适配器</td>
+</tr>
+<tr>
+<td>协议</td>
+<td>SDK stdio stream-json</td>
+<td>事件流/CLI</td>
+<td>Python 内调</td>
+</tr>
+<tr>
+<td>模型回退</td>
+<td>会话级切换</td>
+<td>✅ runWithModelFallback</td>
+<td>✅ fallback + 凭据池</td>
+</tr>
+<tr>
+<td>迭代上限</td>
+<td>qodercli 控制</td>
+<td>下层引擎</td>
+<td>✅ IterationBudget + grace</td>
+</tr>
+<tr>
+<td>中断</td>
+<td>controlsRouter.cancel</td>
+<td>run abort</td>
+<td>✅ _interrupt_requested</td>
+</tr>
+<tr>
+<td>中途插话</td>
+<td>队列追加</td>
+<td>渠道新消息</td>
+<td>✅ /steer 注入 tool 消息</td>
+</tr>
+<tr>
+<td>工具权限门</td>
+<td>✅ canUseTool(主进程)</td>
+<td>tool-policy</td>
+<td>✅ guardrail + scope</td>
+</tr>
+<tr>
+<td>plan/agent 模式</td>
+<td>✅ permissionMode</td>
+<td>—</td>
+<td>mode 参数</td>
+</tr>
+<tr>
+<td>回推</td>
+<td>GUI broadcastStreamChunk</td>
+<td>IM route-reply</td>
+<td>CLI/TUI + TTS</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 三方架构图</h2>
+<pre class="mermaid">flowchart TB
+  subgraph QW[QoderWork 单引擎]
+    QWr[renderer tRPC submitMessage] --&gt; QWe[UnifiedChatExecutor.executeTask]
+    QWe --&gt; QWsdk[qoder-agent-sdk ProcessTransport]
+    QWsdk --&gt;|stdio stream-json| QWcli["qodercli 二进制(唯一引擎)"]
+    QWcli --&gt;|事件| QWe --&gt; QWui[broadcastStreamChunk → GUI]
+  end
+  subgraph OC[OpenClaw 多引擎编排]
+    OCt[runAgentTurnWithFallback] --&gt; OCf{isCliProvider?}
+    OCf --&gt;|是| OCcli[runCliAgent: claude/codex/cursor/gemini/qwen]
+    OCf --&gt;|否| OCpi[嵌入 pi-ai]
+    OCcli --&gt; OCev[事件流] --&gt; OCrr[route-reply → IM]
+    OCpi --&gt; OCev
+  end
+  subgraph HM[Hermes 自持循环]
+    HMr[run_conversation:351] --&gt; HMl["while 未超迭代上限与预算 :796"]
+    HMl --&gt; HMs["/steer drain"]
+    HMs --&gt; HMapi[_interruptible_api_call:1308]
+    HMapi --&gt; HMfr{tool_calls?}
+    HMfr --&gt;|是| HMex[_execute_tool_calls 并发]
+    HMex --&gt; HMl
+    HMfr --&gt;|否| HMend[return final]
+  end
+</pre>
+<h2>3. QoderWork 实现（main.pretty.js）</h2>
+<ul>
+<li>入口 <code>chatStreamRouter.submitMessage</code>（:88363）→ <code>unifiedExecutor.submitOrQueue</code>（运行中入队/空闲直跑）→ <code>ChatSessionService</code>（:78547）→ <code>UnifiedChatExecutor.executeTask</code>（:83535）。</li>
+<li>executeTask 组装 SDK options <code>Pr</code>（:84050）：<code>systemPrompt/agents/mcpServers/skills/permissionMode(plan|default)/canUseTool/hooks/pathToQoderCLIExecutable</code>。</li>
+<li><code>qoder-agent-sdk</code> 的 <code>ProcessTransport.buildArgs</code>（sdk:410）发 <code>--print --output-format stream-json --input-format stream-json --permission-prompt-tool stdio</code> 等，spawn <code>qodercli</code>。</li>
+<li>主进程 <code>for await</code> 消费事件（<code>result</code>/<code>compact_boundary</code>/<code>error</code>/text-delta），<code>broadcastStreamChunk</code> 推 renderer；权限经 <code>createCanUseToolCallback</code>(:42749) 反向门控。</li>
+<li><strong>特征</strong>：单一引擎、桌面 GUI 回推、强权限门 + hooks（与 Claude Code 形态同构）。</li>
+</ul>
+<h2>4. OpenClaw 实现（dist）</h2>
+<ul>
+<li><code>runAgentTurnWithFallback</code>（agent-runner.runtime:338）<code>while(true)</code> 消费事件；<code>runWithModelFallback</code> 模型链；CLI provider 走 <code>runCliAgent</code>（pi-embedded）spawn 外部 agent，非 CLI 走嵌入 pi-ai（各 provider stream fn，<code>stopReason: toolUse→继续</code>，:99863）。</li>
+<li>8 个生命周期 hook（:10282-10335）；runner 负责 typing/dedupe/记忆 flush/HEARTBEAT 静默。</li>
+</ul>
+<h2>5. Hermes 实现（hermes-agent）</h2>
+<ul>
+<li><code>run_conversation</code>（conversation_loop.py:351），主循环 <code>while api_call_count&lt;max &amp;&amp; budget.remaining&gt;0</code>（:796）；<code>IterationBudget</code>+grace、<code>_interrupt_requested</code>、<code>_drain_pending_steer</code>、<code>_interruptible_api_call</code>（:1308）、<code>_execute_tool_calls</code>→<code>execute_tool_calls_concurrent</code>（tool_executor.py:110，线程池 + tool_search 桥接展开 + scope 门，注释自承"OpenClaw lesson"）；guardrail halt（:3835）。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>谁跑循环</strong>：QoderWork 把循环放进 <code>qodercli</code>（但其 JS 源码内嵌可提取，非真黑盒，见 §6.3）；OpenClaw 把循环外包给可替换引擎（甚至外部 coding CLI）；Hermes 自己跑、全透明可控。</li>
+<li><strong>回推终端</strong>：QoderWork=桌面 GUI；OpenClaw=IM；Hermes=CLI/TUI（+TTS）——三种入口。</li>
+<li><strong>可控性梯度</strong>：Hermes（最细，预算/中断/steer/护栏进程内）&gt; QoderWork（permissionMode+hooks，循环在 CLI 内但可还原）&gt; OpenClaw（交给下层引擎，自身专注渠道侧）。</li>
+<li><strong>交叉印证</strong>：QoderWork 的 SDK 形态 ≈ Claude Code（qodercli 二进制内含 <code>@anthropic-ai/claude-code</code>、<code>CLAUDE_CODE_AGENT_RULE_DISABLED</code>、同款工具描述）；OpenClaw 能把 Claude Code/Codex 当引擎编排；Hermes 代码显式引用"OpenClaw lesson"——三者同处一个相互借鉴的 agent runtime 生态。</li>
+</ul>
+<h2>6.3 如何"看穿" qodercli（方法 + 可达性）</h2>
+<p>qodercli 是 <strong>Bun <code>--compile</code> 单文件可执行</strong>（Mach-O arm64, 99MB），但<strong>未启用 <code>--bytecode</code></strong>——transpile 后的 <strong>JS 源码原样内嵌</strong>。因此它的 agent loop <strong>不是机器码黑盒</strong>，可由浅入深四条路还原：</p>
+<table>
+<thead>
+<tr>
+<th>通道</th>
+<th>拿到什么</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① SDK 协议（qoder-agent-sdk）</td>
+<td>CLI 参数 + stream-json 事件契约（loop 的 I/O 边界）</td>
+<td>✅ 已还原</td>
+</tr>
+<tr>
+<td>② 主进程拼装（main.pretty.js）</td>
+<td>喂给 qodercli 的 systemPrompt/工具/hooks/permissionMode（loop 的全部输入）</td>
+<td>✅ 已还原</td>
+</tr>
+<tr>
+<td>③ <strong>二进制 <code>strings</code> 提取</strong></td>
+<td>qodercli 内嵌 JS 源码：系统提示词、工具实现、plan/todo/think 逻辑、事件状态机</td>
+<td>✅ 可提取（18MB 可读 JS / <code>strings -n 60</code>）</td>
+</tr>
+<tr>
+<td>④ 动态观测</td>
+<td><code>--debug</code>/debugFile + 喂 stream-json 实跑，记录真实事件序列</td>
+<td>可选</td>
+</tr>
+</tbody>
+</table>
+<p>实测（<code>Resources/bin/qodercli</code>）：</p>
+<pre><code>$ strings -n 60 qodercli &gt; qodercli.js   # 抽出 ~18MB 可读 JS
+OHE="You are QoderWork, a desktop agentic assistant developed by Qoder team..."   # 系统提示词
+"...plan mode, use this tool to clarify requirements ... BEFORE finalizing your plan"  # ExitPlanMode
+"Executes a given bash command and returns its output."  / "Reads a file from the local filesystem..."  # 工具
+</code></pre>
+<p><strong>结论</strong>：把 qodercli 当主进程同法处理（<code>strings</code> → 切出 JS 区段 → js-beautify → 顺函数读）即可做出与 §3/§4/§5 同级的函数级 agent-loop 章节。所以「难以推测其 agent loop」并不成立——它甚至比 OpenClaw 的外部 CLI provider（claude/codex 闭源二进制，部分仅协议可见）更<strong>完全可还原</strong>。真正还原成本只是工程量（99MB 里切 JS、去 Bun 运行时噪声），不是信息缺失。</p>
+<h3>6.4 从 qodercli 二进制实读出的循环内核（已提取，非推测）</h3>
+<p>对 <code>/tmp/qodercli-strings.js</code>（18MB 内嵌 JS）精读，qodercli 的 agent loop 是 <strong>Claude Code 形态的生成器流式 ReAct</strong>，关键结构均有实证：
+- <strong>生成器流式循环</strong>：大量 <code>async function*</code> + <code>yield* ja(...)/VXT(...)</code>，逐事件产出（text/thinking/tool_use/result）。
+- <strong>tool_use 内容块迭代</strong>（逐工具执行 + 统计）实测片段：
+  <code>js
+  for (let I of R.message.content) {
+    if (I.type !== "tool_use") continue;
+    this.#A.tools.totalCalls++; T.set(I.id, I.name);
+    this.#A.tools.byName[I.name] ??= {count:0,success:0,fail:0,durationMs:0,
+       decisions:{accept:0,reject:0,modify:0,auto_accept:0}};   // ← 权限决策四类 + auto_accept
+    this.#A.tools.byName[I.name].count++;
+  }</code>
+  → 助手消息里每个 <code>tool_use</code> 块被执行→产出 <code>tool_result</code>→回灌再转一圈（典型 ReAct），并按工具记录 accept/reject/modify/<strong>auto_accept</strong> 决策。
+- <strong>工具结果结构</strong>：<code>{ llmContent, returnDisplay, toolUseResult, isError? }</code>（Claude Code 同款——<code>llmContent</code> 喂模型、<code>returnDisplay</code> 给 UI）。
+- <strong>auto 自治靠内部分类器</strong>：提示词 <code>"You are a security classifier for auto permission mode."</code> 实证——<code>autonomyLevel:auto</code> 不是无脑放行，而是 qodercli 内部跑一个<strong>安全分类器 LLM</strong> 判定该工具调用能否自动批准（对应上面 <code>auto_accept</code> 决策）。
+- <strong>自动压缩</strong>：<code>subtype:"compact_boundary"</code> + <code>compact_metadata.trigger:["manual","auto"]</code> + <code>autoCompactTracking.lastCompressionStatus</code> + <code>compressionStatus===1||6</code> 判定——上下文将满时自动压缩并发 <code>compact_boundary</code> 事件（主进程据此存 <code>session_memory_path</code>，见 §3）。
+- <strong>思考</strong>：<code>reasoning_effort</code> / <code>unsupported_reasoning_effort</code> 校验，按模型能力设思考强度。
+- <strong>内部 sub-agent 提示</strong>（同在二进制）：<code>security classifier</code>、<code>memory management agent</code>、<code>file search specialist</code>、<code>hook evaluator</code>、<code>productivity coach</code>、<code>batch worker</code>——qodercli 会为不同子任务起专门的内部 LLM 调用（与主对话循环分离）。</p>
+<p>→ 即 QoderWork 的对话循环可还原到与 OpenClaw/Hermes <strong>同级的函数体颗粒度</strong>：生成器流式 ReAct + tool_use 回灌 + auto 安全分类器 + auto-compaction + reasoning_effort，全部有二进制实据。</p></div></section><section class="domain" id="d2"><h2 class="domain-title"><span class="dot">🛠️</span>工具 + 权限 / 护栏 / 沙箱</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>人审 + 系统权限 + VM 沙箱</strong>三层。<code>createCanUseToolCallback</code>(主进程) 每次工具调用前 allow/deny（plan 模式禁编辑、<code>AskUserQuestion</code>、<code>pendingToolApprovals</code> 挂起等 renderer 批准）；macOS TCC 7 类权限；执行环境 local vs <code>hvkit</code> 微 VM。</li>
+<li><strong>OpenClaw</strong>：glob 工具策略 <code>tool-policy-match</code>(deny 优先) + <code>sandbox-paths</code> 越界拦截 + <code>before-tool-call</code> 循环熔断（no-progress/ping-pong）+ 安装期 <code>install-security-scan</code>。</li>
+<li><strong>Hermes</strong>：82 工具自注册 + <code>ToolCallGuardrailConfig</code>(失败/无进展熔断) + <code>path_security</code>/<code>url_safety</code>(SSRF) + <strong>Tirith</strong>(cosign 验签的外部策略二进制)。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工具策略 allow/deny</td>
+<td>canUseTool 逐次门控</td>
+<td>✅ glob deny&gt;allow</td>
+<td>✅ scope + valid_tool_names</td>
+</tr>
+<tr>
+<td>人类审批</td>
+<td>✅ pendingToolApprovals 挂起</td>
+<td>sandbox 策略</td>
+<td>guardrail decision</td>
+</tr>
+<tr>
+<td>死循环熔断</td>
+<td>qodercli 内</td>
+<td>✅ no-progress/ping-pong</td>
+<td>✅ exact5/sameTool8/noProgress5</td>
+</tr>
+<tr>
+<td>路径沙箱</td>
+<td>VM 边界</td>
+<td>✅ resolveSandboxPath</td>
+<td>✅ validate_within_dir</td>
+</tr>
+<tr>
+<td>SSRF/URL</td>
+<td>—</td>
+<td>channel 校验</td>
+<td>✅ is_safe_url 私网屏蔽</td>
+</tr>
+<tr>
+<td>系统权限(TCC)</td>
+<td>✅ 7 类 + node-mac-permissions</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>强隔离沙箱</td>
+<td>✅ hvkit 微 VM</td>
+<td>—</td>
+<td>docker/nix 部署级</td>
+</tr>
+<tr>
+<td>Computer Use</td>
+<td>✅ nut-js 全屏</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>外部安全引擎</td>
+<td>install-security-scan(自)</td>
+<td>install-security-scan</td>
+<td>✅ Tirith 验签策略</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 护栏对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork]
+    Q1[工具调用] --&gt; Q2[createCanUseToolCallback]
+    Q2 --&gt;|plan禁编辑/需确认| Q3[emit permission-request]
+    Q3 --&gt; Q4[renderer 批准/拒绝]
+    Q2 --&gt; Q5{VM?} --&gt;|是| Q6[hvkit 沙箱内执行]
+  end
+  subgraph OC[OpenClaw]
+    O1[recordToolCall] --&gt; O2{detectToolCallLoop}
+    O2 --&gt;|熔断| OB[block]
+    O2 --&gt; O3[tool-policy glob]
+    O3 --&gt; O4[resolveSandboxPath 越界检查]
+  end
+  subgraph HM[Hermes]
+    H1[ToolCallSignature] --&gt; H2{ToolGuardrailDecision}
+    H2 --&gt;|halt| HB[受控停机]
+    H2 --&gt; H3[path/url 安全]
+    H3 --&gt; H4[Tirith 策略扫描]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>createCanUseToolCallback</code>（main.pretty.js:42749）返回 <code>{behavior:allow|deny}</code>：plan 模式 <code>checkPlanModeEditRestriction</code>/<code>isToolBlockedInPlanMode</code>；<code>AskUserQuestion</code>；特定 bash(dws/lark/aone/a1/ncs)自动放行；通用 <code>registerPendingApproval</code>(:42568) 挂 Promise，经 <code>controlsRouter.respondToolApproval</code>(:86655) 回填。</li>
+<li>TCC：<code>permissionsRouter</code>(:119059) + <code>permissionTypeSchema</code>(7 类 fullDiskAccess/screenCapture/accessibility/automation/notification/location/microphone)。</li>
+<li>VM：<code>startHvkitMac</code>(:70490) node-pty spawn hvkit；<code>isUsingVm</code>(:43505)；computer-use uiohook-napi + nut-js。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>detectToolCallLoop</code>（pi-tools.before-tool-call.runtime:227，no-progress/ping-pong 全局熔断）；<code>makeToolPolicyMatcher</code>（tool-policy-match:20，glob deny&gt;allow）；<code>resolveSandboxPath</code>（sandbox-paths:33，<code>..</code>/绝对路径抛错）；<code>audit-fs</code> + <code>install-security-scan</code>。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>ToolCallGuardrailConfig</code>（tool_guardrails.py:64，exact_failure=5/same_tool_halt=8/no_progress=5）→ <code>_tool_guardrail_halt_decision</code> 受控 halt；<code>registry.register()</code> 自注册 82 工具；<code>validate_within_dir</code>(path_security:15)；<code>is_safe_url</code>(url_safety:272 屏私网)；<strong>Tirith</strong>(tirith_security.py，<code>_verify_cosign</code>:264 验签后用)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>熔断算法</strong>：OpenClaw 与 Hermes 几乎同构（no-progress+ping-pong / exact-failure），QoderWork 把它藏在 qodercli 内——三者都防"agent 卡死烧钱"。</li>
+<li><strong>隔离强度</strong>：QoderWork 最强（hvkit 微 VM + TCC 系统权限 + computer-use），因为它要在用户<strong>桌面真机</strong>上动文件/鼠标键盘，必须重隔离；OpenClaw/Hermes 跑服务端，靠工具策略 + 路径沙箱 + 进程级（docker/nix）。</li>
+<li><strong>安全纵深</strong>：Hermes 独有 SSRF 防护 + Tirith 可验证来源策略引擎（面向不可信环境）；QoderWork 独有人审挂起 + 系统级 TCC；OpenClaw 偏轻量 glob 策略。</li>
+</ul></div></section><section class="domain" id="d3"><h2 class="domain-title"><span class="dot">🧠</span>记忆 / 上下文 / 压缩</h2><div class="md"><h2>0. 一句话差异</h2>
+<p>三者<strong>记忆文件约定一致</strong>（<code>AGENTS/SOUL/USER/HEARTBEAT/MEMORY/BOOTSTRAP</code>），但检索后端各异：
+- <strong>QoderWork</strong>：<strong>FTS5 + trigram 词法检索</strong>（每 agent 独立 SQLite，chunk 400/80），awareness 模式注入 bootstrap，记忆反思 worker 重整 MEMORY/USER，compact_boundary 回传 <code>session_memory_path</code>。
+- <strong>OpenClaw</strong>：<strong>向量 embedding</strong>（OpenAI/Gemini/Voyage/Mistral/Ollama 5 家），qmd <code>search/vsearch/query</code> 模式，按 agentId 分集合；<code>runMemoryFlushIfNeeded</code> 压缩后下沉。
+- <strong>Hermes</strong>：<strong>可插拔 MemoryProvider</strong>（<code>prefetch</code> 每轮后台预取）+ 可插拔 <code>ContextEngine</code>(should_compress/compress)。</p>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>记忆文件</td>
+<td>✅ awareness 模板</td>
+<td>✅ 同约定</td>
+<td>✅ 同约定</td>
+</tr>
+<tr>
+<td>检索后端</td>
+<td>FTS5 trigram(词法)</td>
+<td>向量 embedding(语义)</td>
+<td>可插拔 provider</td>
+</tr>
+<tr>
+<td>主动召回</td>
+<td>memory 工具</td>
+<td>memory 工具</td>
+<td>✅ prefetch 后台预取</td>
+</tr>
+<tr>
+<td>压缩</td>
+<td>qodercli compact</td>
+<td>compactEmbeddedPi + flush</td>
+<td>✅ ContextEngine(可插拔)</td>
+</tr>
+<tr>
+<td>压缩可插拔</td>
+<td>❌(CLI内)</td>
+<td>部分</td>
+<td>✅ ABC 可换算法</td>
+</tr>
+<tr>
+<td>多 agent 隔离</td>
+<td>✅ 每 agent 独立库</td>
+<td>✅ collection scope</td>
+<td>session 维度</td>
+</tr>
+<tr>
+<td>流式清洗</td>
+<td>—</td>
+<td>normalizeStreamingText</td>
+<td>✅ StreamingContextScrubber</td>
+</tr>
+<tr>
+<td>记忆反思/策展</td>
+<td>✅ MemoryReflectionTask</td>
+<td>flush</td>
+<td>✅ curator(维度12)</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork FTS5]
+    Q1[memory_search] --&gt; Q2[chunks_fts trigram]
+    Q3[compact_boundary] --&gt; Q4[session_memory_path 落库]
+    Q5[MemoryReflectionTask 重整 MEMORY/USER]
+  end
+  subgraph OC[OpenClaw 向量]
+    O1[memory] --&gt; O2[embed 5家 provider]
+    O2 --&gt; O3[向量库 按agentId]
+    O4[compaction] --&gt; O5[runMemoryFlushIfNeeded 下沉]
+  end
+  subgraph HM[Hermes 可插拔]
+    H1[每轮] --&gt; H2[MemoryProvider.prefetch 后台]
+    H3[超阈] --&gt; H4[ContextEngine.compress]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li>记忆索引（main.pretty.js:60110）：每 agent SQLite，<code>chunks_fts USING fts5(... tokenize='trigram')</code>（:60189），<code>CHUNK_TOKENS=400/OVERLAP=80</code>。awareness system prompt 定义 SOUL&gt;AGENTS&gt;USER&gt;HEARTBEAT&gt;MEMORY 优先级（:79497）；<code>memory/</code> 子目录不注入，靠 <code>memory_search</code>/<code>memory_get</code>。<code>MemoryReflectionTask</code>（memory-reflection chunk）周期重整。<code>updateSubChatSessionMemoryPath</code> 持久化 compact 记忆路径。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>getMemorySearchManager</code>/<code>resolveSearchMode</code>(search/vsearch/query, search-manager:92)，embed 默认 <code>text-embedding-3-small</code>/<code>gemini-embedding-001</code>/<code>nomic-embed-text</code>(memory-search:7)，<code>scopeCollectionBase(base,agentId)</code>(:37)；压缩 <code>compactEmbeddedPiSessionDirect</code> + runner <code>runMemoryFlushIfNeeded</code>(agent-runner:986)。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>MemoryProvider(ABC)</code>（memory_provider.py:42）<code>prefetch</code>(:93 每轮前后台召回)/<code>queue_prefetch</code>(:107)/<code>sync_turn</code>/<code>system_prompt_block</code>；<code>ContextEngine(ABC)</code>（context_engine.py:32）<code>should_compress</code>(:83)/<code>compress</code>(:87)/<code>should_compress_preflight</code>(:110)；<code>StreamingContextScrubber</code>（memory_manager.py:62）剥 think 块。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>检索三路线</strong>：QoderWork 词法 FTS5（零依赖、对代码/中文精确）/ OpenClaw 语义向量（召回相关、需 embed 服务）/ Hermes 可插拔（接 qmd/向量/grep 皆可）。</li>
+<li><strong>召回时机</strong>：Hermes 独有"每轮前后台 prefetch"把召回延迟藏进思考时间；另两者多为模型主动调 memory 工具。</li>
+<li><strong>共识</strong>：三者都"长期记忆=外部 markdown + 检索 + 会话起注入 bootstrap"，记忆文件约定已成事实标准。</li>
+</ul></div></section><section class="domain" id="d4"><h2 class="domain-title"><span class="dot">🧩</span>技能 / 插件 / 命令</h2><div class="md"><h2>0. 一句话差异</h2>
+<p>三者都做「markdown 技能 + slash 命令 + 插件 + 市场」，但封装最重一档不同：
+- <strong>QoderWork</strong>：四层——Command / Skill(SKILL.md) / Plugin(.qoder-plugin) / <strong>Legokit</strong>（最重：独立 MCP server + 隔离子进程运行时 + 工作区模式 + executionConstraints，如 ai-slides/canvas/writing）；agents 作 subagent。
+- <strong>OpenClaw</strong>：commands-registry(slash+native+arg菜单) + skill-commands(workspace/agents/<strong>remote</strong> 三源) + plugin-entry + <strong>clawhub</strong> 市场 + <code>coding-agent</code> skill(把 claude/codex 当工具)。
+- <strong>Hermes</strong>：skill bundles(md 热重载 + slash) + skill_commands + <strong>Python plugins</strong>(可挂 Web dashboard / 替换 context_engine / 成就系统) + skills_hub。</p>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>技能格式</td>
+<td>SKILL.md frontmatter</td>
+<td>SKILL.md</td>
+<td>md bundle</td>
+</tr>
+<tr>
+<td>slash 命令</td>
+<td>commands(内置/用户)</td>
+<td>✅ +native+arg菜单</td>
+<td>✅ bundle slash</td>
+</tr>
+<tr>
+<td>插件</td>
+<td>.qoder-plugin(行业包)</td>
+<td>plugin-entry</td>
+<td>✅ Python(可编程)</td>
+</tr>
+<tr>
+<td>技能市场</td>
+<td>skill-market-data</td>
+<td>✅ clawhub</td>
+<td>skills_hub</td>
+</tr>
+<tr>
+<td>远程技能源</td>
+<td>market</td>
+<td>✅ skills-remote</td>
+<td>bundles</td>
+</tr>
+<tr>
+<td>热重载</td>
+<td>快照 diff</td>
+<td>发现缓存</td>
+<td>✅ mtime 重扫</td>
+</tr>
+<tr>
+<td>最重封装</td>
+<td>✅ <strong>Legokit 隔离运行时</strong></td>
+<td>coding-agent skill</td>
+<td>插件(可挂Web)</td>
+</tr>
+<tr>
+<td>subagent</td>
+<td>✅ agents</td>
+<td>agents</td>
+<td>agents</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart LR
+  subgraph QW[QoderWork 四层]
+    Q1[Command] --&gt; Q2[Skill]
+    Q2 --&gt; Q3[Plugin 行业包]
+    Q3 --&gt; Q4[Legokit: 独立MCP+隔离运行时+工作区模式]
+  end
+  subgraph OC[OpenClaw]
+    O1[commands-registry slash/native] 
+    O2[skill-commands: workspace/agents/remote]
+    O3[clawhub 市场] --&gt; O2
+    O4[coding-agent skill 封装 claude/codex]
+  end
+  subgraph HM[Hermes]
+    H1[skill_bundles 热重载] --&gt; H2[build_bundle_invocation_message]
+    H3[Python plugins: browser/dashboard/context_engine]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>skillsRouter</code>(31 proc,:65502)/<code>commandsRouter</code>(:115924)/<code>pluginsRouter</code>(24 proc,:116662)/<code>legokitRouter</code>(19 proc,:121441)/<code>slidesTemplatesRouter</code>(:123069)/<code>agentsRouter</code>(:115688)。</li>
+<li>Legokit：<code>LegokitRegistry</code>(:80007) + <code>LegokitIsolatedRuntimeRunner.start</code>(:72321) <code>spawn(process.execPath,[legokit-isolated-runtime-child.js,...])</code> 跑该 legokit 的 MCP server bundle，受限 env；<code>executionConstraints</code>(forceNoVm/disallowedTools/exposeGlobalMcpTools)。注入经 <code>buildMainSessionPluginRuntimeConfig</code>(:61988)。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>commands-registry</code>(listChatCommands/native specs/argMenu)；<code>skill-commands.runtime</code> <code>listSkillCommandsForWorkspace</code>/<code>listSkillCommandsForAgents</code> + <code>skills-remote</code>；<code>plugin-entry.runtime</code>；clawhub/coding-agent skills(/opt/.../openclaw/skills/)。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>skill_bundles.py</code>：<code>scan_bundles</code>(:168)+<code>reload_bundles</code>(:221 mtime 热重载)+<code>resolve_bundle_command_key</code>(:208)+<code>build_bundle_invocation_message</code>(:253)+CRUD；<code>skill_commands._load_skill_payload</code>(:53)；Python <code>plugins/</code>(browser/context_engine/dashboard_auth/image_gen/hermes-achievements)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>最重封装 QoderWork 独占</strong>：Legokit = 独立 MCP + 隔离子进程 + 工作区模式，是"模式应用"级封装；OpenClaw 的 coding-agent skill / Hermes 的 Python plugin 最接近但更轻。</li>
+<li><strong>远程/市场</strong>：三者都有（QoderWork skill/plugin market、OpenClaw clawhub+remote、Hermes skills_hub）——技能即"可分发的能力包"成共识。</li>
+<li><strong>可编程性</strong>：Hermes 插件最"可编程"（Python，能挂 Web/换上下文引擎）；OpenClaw 强在 IM native 命令 + arg 菜单；QoderWork 强在隔离运行时 + 行业插件包。</li>
+</ul></div></section><section class="domain" id="d5"><h2 class="domain-title"><span class="dot">🔌</span>MCP 集成</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>MCP client 连接池 + 内置 server + MCP-UI</strong>。<code>McpClientPool</code>(stdio/SSE/StreamableHTTP) + 内置连接器(Apple 邮件/日历/备忘/提醒/通讯录 + 浏览器 + wecom) + <code>getToolsWithUi</code>(交互式 MCP App) + 懒加载。</li>
+<li><strong>OpenClaw</strong>：<strong>MCP client</strong>，<code>mcp-cli</code> 管配置(list/show/set/unset)，连用户配置的外部 server(如 uvx context7)。</li>
+<li><strong>Hermes</strong>：<strong>双向 MCP</strong>——client(<code>stdio_client</code>+重连+OAuth) + <strong>server(<code>mcp_serve.py</code> 把自身暴露给 Claude Code/Cursor/Codex 驱动)</strong> + <code>tool_search</code> 懒激活。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MCP client</td>
+<td>✅ 连接池</td>
+<td>✅ 配置驱动</td>
+<td>✅ stdio+OAuth+重连</td>
+</tr>
+<tr>
+<td>MCP server(被驱动)</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅ <strong>mcp_serve(独有)</strong></td>
+</tr>
+<tr>
+<td>内置 server</td>
+<td>✅ Apple/浏览器/wecom</td>
+<td>—</td>
+<td>optional-mcps(linear/n8n)</td>
+</tr>
+<tr>
+<td>传输</td>
+<td>stdio/SSE/HTTP</td>
+<td>stdio</td>
+<td>stdio + OAuth http</td>
+</tr>
+<tr>
+<td>MCP-UI app</td>
+<td>✅ getToolsWithUi</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>工具懒加载</td>
+<td>✅ mcpLazyLoad</td>
+<td>静态配置</td>
+<td>✅ tool_search 按token</td>
+</tr>
+<tr>
+<td>OAuth</td>
+<td>clearMcpAuthToken</td>
+<td>config env</td>
+<td>✅ OAuthClientProvider</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TB
+  subgraph QW[QoderWork client+内置server]
+    Q1[McpClientPool] --&gt; Q2[(外部 MCP server)]
+    Q1 --&gt; Q3[内置: Apple/浏览器/wecom InMemory]
+    Q1 --&gt; Q4[getToolsWithUi → MCP-UI app]
+  end
+  subgraph OC[OpenClaw client]
+    O1[mcp-cli list/set] --&gt; O2[mcp-config] --&gt; O3[(外部 server uvx)]
+  end
+  subgraph HM[Hermes 双向]
+    H1[mcp_tool stdio_client] --&gt; H2[(外部 server)]
+    CC[Claude Code/Cursor] --&gt;|驱动| H3[mcp_serve 暴露自身]
+    H4[tool_search 懒激活] -.-&gt; H1
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>mcpRouter</code>(25 proc,:89171)；<code>McpClientPool</code>(:40633) <code>connect</code>(stdio/SSE/StreamableHTTP, :41667)、<code>getEffectiveToolNames</code>(:40965 懒加载 diff)；内置 server chunks(server-*.js：Reminders/Calendar/Notes/Mail/Contacts/浏览器/wecom)；<code>McpAdaptor</code>(qw-builtin,:74232) + <code>getToolsWithUi</code>(MCP-UI)；<code>@modelcontextprotocol/sdk</code>。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>registerMcpCli</code>(mcp-cli:22)：<code>openclaw mcp list/show/set/unset</code>；<code>normalizeConfiguredMcpServers</code>(mcp-config:6)，配置如 <code>{"command":"uvx","args":["context7-mcp"]}</code>；连接在 pi 引擎/工具层并入 tool-catalog。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li>client：<code>stdio_client</code>+<code>ClientSession</code>(mcp_tool.py:184)，<code>MCPServerTask</code> 重连，<code>OAuthClientProvider</code>(mcp_oauth)；server：<code>mcp_serve.py</code> <code>@mcp.tool()</code>(:471+) + <code>EventBridge</code>(poll_events/respond_to_approval, :204) 让外部 MCP client 驱动 Hermes；懒激活 <code>tool_search.classify_tools</code>(:189)/<code>should_activate</code>(:234)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>方向性</strong>：QoderWork/OpenClaw 单向 client（吃外部工具）；<strong>Hermes 双向</strong>——还能把自己变成 MCP server 让 Claude Code 当 sub-agent 调用，三者独一份。</li>
+<li><strong>内置 server</strong>：QoderWork 独有一组系统连接器(Apple 生态/浏览器/IM)做成进程内 MCP，且有 MCP-UI 交互应用；OpenClaw/Hermes 靠外部 server。</li>
+<li><strong>懒加载</strong>：QoderWork(mcpLazyLoad) 与 Hermes(tool_search 按 token) 都做了；OpenClaw 偏静态。</li>
+</ul></div></section><section class="domain" id="d6"><h2 class="domain-title"><span class="dot">💬</span>渠道 / IM / 网关</h2><div class="md"><h2>0. 一句话差异</h2>
+<p>三者都能把 IM 消息接入 agent + 配对鉴权，但中心不同：
+- <strong>QoderWork</strong>：桌面应用<strong>附带</strong> IM 接入——企业微信/钉钉/飞书/Teams，<code>channelPairing</code> 审批配对，复用桌面 agent loop，<code>ReplyDispatcher</code> 回推；偏中国企业 IM。
+- <strong>OpenClaw</strong>：<strong>IM 优先</strong>——<code>channel.runtime</code>(2.2万行) 核心，10 平台(Telegram/Discord/Slack/WhatsApp/Signal/GoogleChat/MSTeams/iMessage/LINE/Zalo)，<code>audit-channel.allow-from</code> + 出站去重管线。
+- <strong>Hermes</strong>：<strong>网关常驻 + 可插件平台</strong>——<code>platform_registry</code> 自注册(telegram/discord/slack/whatsapp/signal/matrix/sms/email/irc/google_chat + 插件)，<code>DeliveryRouter</code>(deliver= 目标)，<code>PairingStore</code>(审批+限流)。</p>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平台数</td>
+<td>4(wecom/钉钉/飞书/Teams)</td>
+<td>10(含LINE/iMessage/Zalo)</td>
+<td>10+(含matrix/sms/email/irc)+插件</td>
+</tr>
+<tr>
+<td>平台可扩展</td>
+<td>内置</td>
+<td>config schema</td>
+<td>✅ platform_registry 插件</td>
+</tr>
+<tr>
+<td>配对/访问控制</td>
+<td>✅ channelPairing 审批</td>
+<td>✅ allow-from</td>
+<td>✅ PairingStore 审批+限流</td>
+</tr>
+<tr>
+<td>出站路由/去重</td>
+<td>ReplyDispatcher</td>
+<td>✅ route-reply + dedupe</td>
+<td>✅ DeliveryRouter</td>
+</tr>
+<tr>
+<td>进程模型</td>
+<td>桌面 Electron</td>
+<td>gateway+watchdog</td>
+<td>gateway/run.py 守护</td>
+</tr>
+<tr>
+<td>主动发消息</td>
+<td>qoder_send_message</td>
+<td>route-reply</td>
+<td>send_message_tool</td>
+</tr>
+<tr>
+<td>定位</td>
+<td>桌面+IM 辅助</td>
+<td>IM 优先</td>
+<td>网关优先</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart LR
+  subgraph QW[QoderWork]
+    Q1[wecom/钉钉/飞书/Teams] --&gt; Q2[channelPairing 审批]
+    Q2 --&gt; Q3[桌面 agent loop] --&gt; Q4[ReplyDispatcher 回推]
+  end
+  subgraph OC[OpenClaw]
+    O1[10平台 channel.runtime] --&gt; O2[allow-from]
+    O2 --&gt; O3[runAgentTurn] --&gt; O4[route-reply+dedupe]
+  end
+  subgraph HM[Hermes]
+    H1[platform_registry 可插件] --&gt; H2[PairingStore 审批+限流]
+    H2 --&gt; H3[run_conversation] --&gt; H4[DeliveryRouter deliver=]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>channelsRouter</code>(31 proc,:117002)：getMSTeamsConfig/getDingTalkConfig/getFeishuConfig/dingtalkStartQR…；<code>channelPairingRouter</code>(:117826) generateCode/approvePendingRequest；<code>wecomRouter</code>/<code>wecomBotRouter</code>；SDK <code>@wecom/aibot-node-sdk</code>/<code>dingtalk-stream</code>/<code>@larksuiteoapi/node-sdk</code>；内置工具 <code>qoder_send_message</code>/<code>qoder_delegate_to_im</code>(:71210)。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>channel.runtime</code>(2.2万行) 归一化+sessionKey；<code>audit-channel.{telegram,discord,slack,zalouser}.allow-from</code>；<code>route-reply.runtime</code>+<code>reply-payloads-dedupe</code>(normalizeSentMediaUrlsForDedupe,:1189)+<code>runtime-{telegram,slack,discord}-ops</code>；<code>*ConfigSchema</code> 8+ (含 <code>LineConfigSchema</code> webhook)；read-only-account-inspect 巡检。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>platform_registry.PlatformEntry</code>(:40，metadata+factory+deliver=hook+所属插件)，<code>PluginContext.register_platform()</code> 插件加平台；<code>DeliveryRouter</code>(delivery.py:175)+<code>DeliveryTarget.parse</code>(:112)；<code>PairingStore</code>(pairing.py:81，pending/approved/rate-limit)；<code>gateway/run.py</code>(1.9万行) 守护 + <code>memory_monitor</code>。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>平台广度</strong>：OpenClaw(10,含 IM 个人向 LINE/iMessage/Zalo) ≈ Hermes(10+,含开放协议 matrix/sms/email/irc 且<strong>插件可热插拔平台</strong>) &gt; QoderWork(4,中国企业 IM)。</li>
+<li><strong>定位</strong>：QoderWork IM 是桌面应用的延伸；OpenClaw/Hermes 是 IM/网关原生（常驻守护）。三者都有配对审批（IM agent 安全刚需）。</li>
+<li><strong>出站工程</strong>：OpenClaw 去重管线最成熟（高频 IM）；Hermes <code>deliver=</code> 抽象最通用（跨平台/cron 投递）；QoderWork 经 ReplyDispatcher 复用桌面流。</li>
+</ul></div></section><section class="domain" id="d7"><h2 class="domain-title"><span class="dot">🌐</span>浏览器 / Web / Computer Use</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>控制用户真实 Chrome + 全屏 computer-use</strong>（最重）。CDP 扩展(relay :16789) attach 用户已登录的 Chrome，native messaging host 兜底；nut-js/uiohook 全屏鼠标键盘。</li>
+<li><strong>OpenClaw</strong>：<strong>IM 多模态输入理解 + Web 搜索</strong>。media-understanding(语音转写/图像)、web-search(Perplexity/Brave)、camsnap(摄像头)；重型浏览器委派 coding-agent。</li>
+<li><strong>Hermes</strong>：<strong>可编程浏览器 + Web 抓取 + 视觉</strong>。<code>BrowserProvider</code>(CDP) 多后端(browser_use/browserbase 云/firecrawl)，web_search/extract 4 家(Exa/Firecrawl/Parallel/Tavily)，vision_tools。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交互式浏览器</td>
+<td>✅ 控制用户真实 Chrome(CDP扩展)</td>
+<td>轻/委派</td>
+<td>✅ CDP 多后端</td>
+</tr>
+<tr>
+<td>浏览器后端</td>
+<td>用户 Chrome</td>
+<td>—</td>
+<td>browser_use/browserbase/firecrawl</td>
+</tr>
+<tr>
+<td>Computer Use 全屏</td>
+<td>✅ nut-js 鼠标键盘</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Web 搜索</td>
+<td>（走MCP/工具）</td>
+<td>✅ Perplexity/Brave</td>
+<td>✅ Exa/Firecrawl/Parallel/Tavily</td>
+</tr>
+<tr>
+<td>图像理解</td>
+<td>视觉模型</td>
+<td>✅ image-ops</td>
+<td>✅ vision_tools</td>
+</tr>
+<tr>
+<td>音频转写(入)</td>
+<td>ASR(维度08)</td>
+<td>✅ transcribeFirstAudio</td>
+<td>✅ transcription</td>
+</tr>
+<tr>
+<td>摄像头</td>
+<td>—</td>
+<td>✅ camsnap RTSP</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork]
+    Q1[browser MCP 工具] --&gt; Q2[ExtensionRelayServer :16789]
+    Q2 --&gt; Q3[Chrome 扩展 chrome.debugger CDP]
+    Q3 --&gt; Q4[控制用户真实标签]
+    Q5[computer-use nut-js 全屏]
+  end
+  subgraph OC[OpenClaw]
+    O1[IM 媒体] --&gt; O2[media-understanding 转写/图像]
+    O3[web-search Perplexity/Brave]
+    O4[coding-agent 委派浏览器]
+  end
+  subgraph HM[Hermes]
+    H1[BrowserProvider CDP] --&gt; H2[browser_use/browserbase/firecrawl]
+    H3[web_tools] --&gt; H4[Exa/Firecrawl/Parallel/Tavily]
+    H5[vision_tools]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>extensionRelayRouter</code>(:102436) start→<code>deployChromeExtension</code>+<code>startExtensionRelay(16789)</code>；<code>ExtensionRelayServer</code>(:100455) 三 WebSocket(extension/cdp/v2)；Chrome 扩展(manifest 权限 <code>debugger</code>/<code>tabs</code>/<code>scripting</code>/<code>nativeMessaging</code>)用 <code>chrome.debugger</code> CDP；native host <code>com.qoder.work.connector</code>(读 relay-port.json)；computer-use uiohook-napi+nut-js(维度02)。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>media-understanding.runtime</code> <code>transcribeFirstAudio</code>(:187 IM 语音转写) + image-ops；web-search <code>perplexity-web-search-provider</code>/<code>brave-*</code>/<code>web-search-*</code>；<code>camsnap</code> skill(RTSP/ONVIF)；重型浏览器经 <code>coding-agent</code> skill 复用 claude/codex。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>BrowserProvider(ABC)</code>(browser_provider.py:49) <code>create_session→{cdp_url}</code>(:90)，<code>browser_registry</code>(:52)，插件 browser_use/browserbase/firecrawl；<code>web_tools</code> <code>web_search_tool</code>/<code>web_extract_tool</code>(Exa/Firecrawl/Parallel/Tavily)；<code>vision_tools</code> resize/base64/native fast path(:333/451/511)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>浏览器能力梯度</strong>：QoderWork 独占"控制用户<strong>真机 Chrome</strong>(保留登录态)+全屏 computer-use"（桌面优势）；Hermes 最"可编程"(CDP 本地/云/抓取多后端 + 4 家搜索)；OpenClaw 把交互式浏览器外包 coding-agent，专注<strong>入站多模态理解</strong>。</li>
+<li><strong>多模态方向</strong>：OpenClaw=输入侧(听懂用户发来的语音/图)，Hermes=工具侧(主动搜网/抓页/看图)，QoderWork=桌面操控侧。</li>
+</ul></div></section><section class="domain" id="d8"><h2 class="domain-title"><span class="dot">🎙️</span>语音 / 多模态（TTS/STT/图/视频）</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>输入语音</strong>为主——ASR(云 WebSocket) + Fn 键听写 + DJI 麦克风；无媒体生成栈。</li>
+<li><strong>OpenClaw</strong>：<strong>IM 语音收发</strong>——tts.runtime(回复转语音发 IM) + transcribeFirstAudio(IM 语音转文字)。</li>
+<li><strong>Hermes</strong>：<strong>四类生成 provider 全可插拔</strong>——TTS/STT/image_gen/video_gen(ABC+register+config)，<code>voice_mode</code> 含 Termux/Android 麦克风。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STT 语音转文字</td>
+<td>✅ ASR 云WS</td>
+<td>✅ transcribeFirstAudio</td>
+<td>✅ transcription_provider</td>
+</tr>
+<tr>
+<td>TTS 文转语音</td>
+<td>—</td>
+<td>✅ tts.runtime(IM)</td>
+<td>✅ tts_provider</td>
+</tr>
+<tr>
+<td>文生图</td>
+<td>视觉模型</td>
+<td>(理解为主)</td>
+<td>✅ image_gen_provider</td>
+</tr>
+<tr>
+<td>文/图生视频</td>
+<td>—</td>
+<td>—</td>
+<td>✅ video_gen_provider</td>
+</tr>
+<tr>
+<td>本地麦克风</td>
+<td>✅ Fn 键/DJI</td>
+<td>—</td>
+<td>✅ voice_mode(含 Android)</td>
+</tr>
+<tr>
+<td>provider 可插拔</td>
+<td>—</td>
+<td>provider-catalog</td>
+<td>✅ 全 ABC+register+config</td>
+</tr>
+<tr>
+<td>场景</td>
+<td>桌面听写</td>
+<td>IM 语音对话</td>
+<td>终端语音 + 任务产媒体</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork 输入语音]
+    Q1[Fn键/DJI麦] --&gt; Q2[ASR 云WebSocket]
+    Q2 --&gt; Q3[polishVoiceText 润色] --&gt; Q4[填入输入框]
+  end
+  subgraph OC[OpenClaw IM语音]
+    O1[IM 语音] --&gt; O2[transcribeFirstAudio]
+    O2 --&gt; O3[agent] --&gt; O4[tts.runtime 回复转语音]
+  end
+  subgraph HM[Hermes 生成栈]
+    H1[config 选 provider] --&gt; H2[tts/stt/image_gen/video_gen]
+    H3[voice_mode TermuxAudioRecorder 安卓]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>asrRouter</code>(:121973) start/sendAudio/stop/polish；<code>startAsrSession</code>(:91913) <code>inferBaseUrlToAsrWebSocketUrl</code> 云 ASR WS；<code>polishVoiceText</code>(:121928) LLM 润色；<code>voiceOnboardingRouter</code>(:122475) + Fn 键拦截(<code>bin/fn_key_tap.node</code>)；<code>djiMicRouter</code>(:122050) 音量键映射。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>tts.runtime</code>/<code>runtime-tts.runtime</code>(依赖 provider-catalog)，IM 回复 <code>isAudioPayload</code>(:747) 判定走 TTS；<code>preflight-audio</code>/<code>media-understanding</code> <code>transcribeFirstAudio</code>(:187 pi-embedded)，Discord/Telegram 扩展语音附件转写。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>tts_provider</code>/<code>transcription_provider</code>/<code>image_gen_provider</code>/<code>video_gen_provider</code>(agent/*.py)：均 ABC + <code>BUILTIN_*</code> + <code>PluginContext.register_*_provider()</code> + config 选型；video 按 <code>image_url</code> 路由 img2vid；<code>voice_mode.py</code> <code>detect_audio_environment</code>(:88)/<code>TermuxAudioRecorder</code>(:268 安卓)/<code>play_beep</code>(:224)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>生成 vs 收发</strong>：Hermes 是全模态<strong>生成平台</strong>(四件套可插拔，产媒体作交付物)；OpenClaw 把语音做成 <strong>IM 对话形态</strong>(听懂+用语音回)；QoderWork 偏<strong>桌面听写输入</strong>。</li>
+<li><strong>可移植</strong>：Hermes voice_mode 显式支持 Termux/Android（唯一明确面向手机端）；OpenClaw 绑 IM；QoderWork 绑 macOS（Fn 键/DJI）。</li>
+</ul></div></section><section class="domain" id="d9"><h2 class="domain-title"><span class="dot">🔐</span>鉴权 / 凭据 / 模型 Provider</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>统一 Qoder 账号</strong>——OAuth(deep link qoderwork://) + <code>safeStorage</code> 加密 + WASM 鉴权模块 + 模型策略(scene 下发)；迁移史显示曾管 Anthropic 多账号后移除，收敛为单账号。</li>
+<li><strong>OpenClaw</strong>：基于 <code>@mariozechner/pi-ai</code>——9 provider(anthropic/openai/google/groq/mistral/ollama/openrouter/xai/zai + bedrock)，OAuth(Copilot/Codex/VPS-aware)，auth-profiles 多账号。</li>
+<li><strong>Hermes</strong>：<strong>provider 广度 + 凭据池</strong>最强——8 模型集成(含 bedrock/azure 企业云)，凭据来源极广(env/PKCE/device-code/<strong>摄取 claude_code/qwen/copilot/codex 已登录凭据</strong>)，<code>credential_pool</code> round-robin 故障转移 + <code>nous_rate_guard</code> 跨会话限流。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>账号模型</td>
+<td>统一 Qoder 账号</td>
+<td>多 provider 直连</td>
+<td>多 provider 直连</td>
+</tr>
+<tr>
+<td>provider 数</td>
+<td>经 Qoder 网关</td>
+<td>9+</td>
+<td>8 集成(含云)</td>
+</tr>
+<tr>
+<td>OAuth</td>
+<td>✅ deep link</td>
+<td>✅ Copilot/Codex/VPS</td>
+<td>✅ PKCE/device/loopback</td>
+</tr>
+<tr>
+<td>摄取外部CLI凭据</td>
+<td>—</td>
+<td>(codex/copilot login)</td>
+<td>✅ claude_code/qwen/copilot/codex</td>
+</tr>
+<tr>
+<td>多凭据故障转移</td>
+<td>—</td>
+<td>auth-profiles</td>
+<td>✅ credential_pool round-robin</td>
+</tr>
+<tr>
+<td>跨会话限流</td>
+<td>版本封禁门</td>
+<td>模型 fallback</td>
+<td>✅ nous_rate_guard</td>
+</tr>
+<tr>
+<td>凭据加密</td>
+<td>✅ safeStorage+WASM</td>
+<td>credentials-write</td>
+<td>credential_persistence</td>
+</tr>
+<tr>
+<td>模型目录</td>
+<td>服务端 scene 下发</td>
+<td>✅ model-catalog/picker</td>
+<td>model_metadata/models_dev</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork 统一账号]
+    Q1[login OAuth qoderwork://] --&gt; Q2[WASM 处理凭据]
+    Q2 --&gt; Q3[safeStorage 加密]
+    Q4[getAccessTokenForCLI 刷新] --&gt; Q5[注入 qodercli]
+    Q6[getQoderWorkModels scene 策略]
+  end
+  subgraph OC[OpenClaw pi-ai]
+    O1[provider-auth-login] --&gt; O2[Copilot/Codex OAuth]
+    O3[9 provider catalog] --&gt; O4[model-picker]
+  end
+  subgraph HM[Hermes 凭据池]
+    H1[credential_sources: env/PKCE/claude_code/qwen/copilot] --&gt; H2[credential_pool]
+    H2 --&gt; H3{round_robin}
+    H3 --&gt;|429| H4[DEAD+TTL]
+    H5[nous_rate_guard 跨会话共享]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>authRouter</code>(:90378) login/status/getModels/getUsage；<code>AuthManager</code>(:6876) <code>getAccessTokenForCLI</code>(:6948 给 qodercli 取/刷新)、<code>safeStorage.encryptString</code>(:4117)、WASM <code>qoder_auth_wasm</code>(:4716)；模型 <code>getQoderWorkModels({scene})</code>(:43144) + <code>validateModelLevel</code>；migrations <code>0006_anthropic_multi_account</code>→<code>0009/0010 remove</code>(收敛单账号)。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>@mariozechner/pi-ai</code> 引擎(<code>loginOpenAICodex</code>)；<code>provider-auth-login</code> <code>githubCopilotLoginCommand</code>/<code>createVpsAwareOAuthHandlers</code>/Codex OAuth TLS preflight(:186-189)；<code>provider-auth-choice</code> resolvePluginProviders；<code>credentials-write</code>/auth-profiles；<code>model-catalog</code>/<code>model-picker</code>；9 provider catalog。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li>适配器 anthropic/bedrock/azure_identity/gemini_native/gemini_cloudcode/codex_responses + copilot_acp_client + google_code_assist(8)；<code>credential_sources</code>(:115) 含 <code>_remove_claude_code</code>(:194)/<code>_remove_qwen_cli</code>(:327)/<code>_remove_copilot_gh</code>(:340)(摄取外部CLI)；<code>credential_pool</code>(:1 round-robin,:96，DEAD+TTL)；<code>nous_rate_guard</code>(跨会话 429 共享文件)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>账号哲学</strong>：QoderWork 统一自家账号(产品化、可计费、降配置)；OpenClaw/Hermes 多 provider 直连(BYOK，灵活)。</li>
+<li><strong>凭据生态位</strong>：Hermes 独有"<strong>摄取本机已装的 Claude Code/Codex/Copilot/qwen 凭据</strong>"——对装满 coding agent 的开发者零成本接入；QoderWork 走自家账号，OpenClaw 走 pi-ai OAuth。</li>
+<li><strong>抗限流</strong>：Hermes 最强(凭据池故障转移 + 跨会话 rate_guard)；OpenClaw 靠模型 fallback；QoderWork 靠服务端调度 + 版本门。</li>
+<li><strong>企业云</strong>：仅 Hermes 覆盖 bedrock(AWS)/azure_identity(Azure AD)。</li>
+</ul></div></section><section class="domain" id="d10"><h2 class="domain-title"><span class="dot">🗄️</span>会话 / 状态 / 存储</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>SQLite drizzle 13 表 + FTS5</strong>。projects→chats→sub_chats→messages 三层，chat 带 worktree/分支/PR，记忆库每 agent 独立 SQLite。</li>
+<li><strong>OpenClaw</strong>：<strong>文件式会话</strong>。每会话 <code>.session</code>(JSON)+transcript(jsonl)+write-lock+<code>session-fork</code>(分支)+group/thread 会话键。</li>
+<li><strong>Hermes</strong>：<strong>SQLite 集中</strong>。<code>state.db</code>(WAL，支撑 /resume /title /history /branch)+<code>kanban.db</code>(任务看板 + <strong>swarm 多 agent 编排</strong>)+trajectory。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>介质</td>
+<td>SQLite drizzle(13表)</td>
+<td>文件 .session+jsonl</td>
+<td>SQLite state.db+kanban.db</td>
+</tr>
+<tr>
+<td>全文检索</td>
+<td>✅ FTS5</td>
+<td>(向量在记忆)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>会话分支/fork</td>
+<td>(rollbackToMessage)</td>
+<td>✅ session-fork</td>
+<td>✅ /branch</td>
+</tr>
+<tr>
+<td>续传 resume</td>
+<td>sessionId</td>
+<td>session-key-api</td>
+<td>✅ /resume</td>
+</tr>
+<tr>
+<td>群/话题会话</td>
+<td>chat_type</td>
+<td>✅ group/thread 键</td>
+<td>session source</td>
+</tr>
+<tr>
+<td>任务看板</td>
+<td>—</td>
+<td>—</td>
+<td>✅ kanban(decompose/swarm)</td>
+</tr>
+<tr>
+<td>git worktree/PR</td>
+<td>✅ chats.worktree/pr_url</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>并发保护</td>
+<td>WAL</td>
+<td>✅ write-lock</td>
+<td>✅ WAL+busy</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork SQLite]
+    Q1[(drizzle 13表)] --&gt; Q2[projects→chats→sub_chats→messages]
+    Q2 --&gt; Q3[chat: worktree/branch/pr_url]
+    Q4[messages_fts FTS5]
+  end
+  subgraph OC[OpenClaw 文件]
+    O1[.session JSON + jsonl] --&gt; O2[write-lock]
+    O3[session-fork 分支]
+    O4[group/thread sessionKey]
+  end
+  subgraph HM[Hermes SQLite]
+    H1[(state.db WAL)] --&gt; H2[resume/title/history/branch]
+    H3[(kanban.db)] --&gt; H4[decompose/swarm 多agent]
+    H5[trajectory]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li>drizzle schema(index-Ptir0Q9g.js)：<code>projects/chats/sub_chats/messages/channel_pairings/app_settings/byok_custom_models/mcp_oauth_tokens/scheduled_tasks/task_run_logs/nudge_logs/skill_evolution_suggestions</code>(13 表) + <code>messages_fts</code>(FTS5 trigram)；chats 含 worktree_path/branch/pr_url/pr_number(每任务独立 worktree+PR)；<code>migrations/</code>29 个；<code>migration-worker.js</code> 重迁移。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>updateSessionStore</code>(store.runtime) 写 <code>.session</code>；<code>session-write-lock</code> 文件锁；<code>forkSessionFromParentRuntime</code>(session-fork:8)<code>createBranchedSession</code>；<code>resolveGroupSessionKey</code>(:48)/<code>isThreadSessionKey</code>(:157)；用量 <code>parseUsageFromTranscriptLine</code>(agent-runner:910 从 jsonl 反解)。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>hermes_state.py</code> <code>SessionDB</code>，<code>state.db</code>(WAL,:34)，表 sessions/schema_version；支撑 /resume /title /history /branch(:49)；<code>kanban_db.py</code>+<code>kanban_decompose</code>/<code>kanban_specify</code>/<code>kanban_swarm</code>(看板驱动多 agent)；<code>trajectory.save_trajectory</code>(:30)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>存储哲学</strong>：QoderWork/Hermes 用 SQLite(事务一致、可查询)；OpenClaw 文件式(.session 可读/可 git/易备份，与"文件即记忆"一脉相承)。</li>
+<li><strong>会话分支</strong>：三者都支持(QoderWork rollback / OpenClaw session-fork / Hermes /branch)。</li>
+<li><strong>独有</strong>：QoderWork 把 <strong>git worktree+PR</strong> 绑进 chat(编码 agent 特色)；Hermes 把 <strong>kanban 任务看板 + swarm 多 agent 编排</strong> 做进 DB；OpenClaw 原生 <strong>group/thread 会话键</strong>(IM 群聊)。</li>
+</ul></div></section><section class="domain" id="d11"><h2 class="domain-title"><span class="dot">♻️</span>生命周期 / 网关 / 调度</h2><div class="md"><h2>0. 一句话差异</h2>
+<p>三者都周期自唤醒(均用 <code>HEARTBEAT.md</code> 约定)，但形态不同：
+- <strong>QoderWork</strong>：<strong>桌面 Electron 应用</strong>——<code>scheduleDelayedTasks</code>(22 子系统错峰初始化)、<code>electron-updater</code> 自动更新、ARMS RUM+OTel 遥测；<code>cronRouter</code>(croner) 定时任务复用桌面 loop。
+- <strong>OpenClaw</strong>：<strong>gateway 常驻 + 外部 watchdog</strong>——heartbeat(15m,读 HEARTBEAT.md，HEARTBEAT_OK 静默)、<code>watchdog.sh</code> 健康检查(18789)重启、<code>install.runtime</code>(npm)。
+- <strong>Hermes</strong>：<strong>完整 cron + production 运维</strong>——<code>tick()</code> 文件锁(at-most-once)+并发 worker、cron agent 禁危险 toolset+注入防护、<code>memory_monitor</code>(RSS)/<code>restart</code>(drain)/<code>shutdown_forensics</code>(崩溃取证)。</p>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>周期自唤醒</td>
+<td>cron</td>
+<td>✅ heartbeat 15m</td>
+<td>✅ heartbeat + cron</td>
+</tr>
+<tr>
+<td>cron 表达式</td>
+<td>✅ croner</td>
+<td>轻(heartbeat为主)</td>
+<td>✅ 完整 + 文件锁</td>
+</tr>
+<tr>
+<td>cron 安全降权</td>
+<td>autonomyLevel</td>
+<td>—</td>
+<td>✅ 禁toolset+注入防护</td>
+</tr>
+<tr>
+<td>进程模型</td>
+<td>桌面 Electron</td>
+<td>gateway+watchdog</td>
+<td>gateway 守护</td>
+</tr>
+<tr>
+<td>自动更新</td>
+<td>✅ electron-updater</td>
+<td>✅ watchdog+npm</td>
+<td>docker/nix</td>
+</tr>
+<tr>
+<td>内存监控</td>
+<td>—</td>
+<td>watchdog侧</td>
+<td>✅ memory_monitor RSS</td>
+</tr>
+<tr>
+<td>崩溃取证</td>
+<td>crash logger</td>
+<td>watchdog 日志</td>
+<td>✅ shutdown_forensics</td>
+</tr>
+<tr>
+<td>遥测</td>
+<td>✅ ARMS RUM+OTel</td>
+<td>日志</td>
+<td>logging</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork 桌面]
+    Q1[app 启动] --&gt; Q2[scheduleDelayedTasks 22任务错峰]
+    Q3[electron-updater 自动更新]
+    Q4[cronRouter croner 定时]
+    Q5[ARMS RUM + OTel 遥测]
+  end
+  subgraph OC[OpenClaw 常驻]
+    O1[gateway :18789] --&gt; O2[heartbeat 15m 读HEARTBEAT.md]
+    O2 --&gt;|无事| O3[HEARTBEAT_OK 静默]
+    O4[watchdog.sh 健康检查] --&gt;|失败| O5[重启 gateway]
+  end
+  subgraph HM[Hermes 调度+运维]
+    H1[tick 文件锁] --&gt; H2[advance_next_run 先于执行 at-most-once]
+    H2 --&gt; H3[并发 worker spawn cron agent 降权]
+    H4[memory_monitor RSS] --&gt; H5[restart drain]
+    H6[shutdown_forensics 崩溃取证]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>scheduleDelayedTasks</code>(:125828) 22 个延迟任务(mcp/im/vm/auto_update/cron/legokit/reflection…)；<code>initAutoUpdaterConfig</code>(:124946 electron-updater + app-update.yml)；ARMS RUM(:691 sendException/sendCustom)+OTel(OTLP)+<code>trackingRouter</code>；<code>cronRouter</code>(11 proc,:118758) croner；单实例锁(:638)。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li>heartbeat：<code>isHeartbeat</code>(agent-runner:359)，<code>HEARTBEAT_OK</code> 剥离(:373)，config <code>heartbeat.every=15m,target=last</code>；<code>watchdog.sh</code>(外部，curl 18789 健康检查重启，launchd/systemd 注册)；<code>install.runtime</code> <code>installFromValidatedNpmSpecArchive</code>(:20)。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>cron/scheduler.tick</code>(:1857) <code>fcntl.flock(LOCK_EX|LOCK_NB)</code>(:1880) 单 tick + <strong>先 <code>advance_next_run</code> 再执行(at-most-once,:1900)</strong> + <code>HERMES_CRON_MAX_PARALLEL</code>(:1905)；<code>_resolve_cron_disabled_toolsets</code> 禁 <code>[cronjob,messaging,clarify]</code>(:73) + <code>CronPromptInjectionBlocked</code>(:47)；<code>memory_monitor</code>(RSS,:139)/<code>restart</code>(drain)/<code>shutdown_forensics.snapshot_shutdown_context</code>(:104)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>进程范式</strong>：QoderWork=桌面 GUI 进程(electron-updater)；OpenClaw=gateway+外部 watchdog(解耦省内存)；Hermes=gateway 守护(内建 memory_monitor/drain/取证，production grade)。</li>
+<li><strong>调度精细度</strong>：Hermes 完整 cron(锁/at-most-once/并发/降权/注入防护)最严肃；QoderWork croner 中等；OpenClaw heartbeat 轮询最轻。</li>
+<li><strong>共识</strong>：三者都用 <code>HEARTBEAT.md</code> + <code>HEARTBEAT_OK</code>/<code>NO_REPLY</code> 静默语义——又一处事实标准趋同。</li>
+<li><strong>遥测</strong>：仅 QoderWork 接商用 APM(阿里 ARMS RUM + OpenTelemetry)，因其是分发给海量用户的桌面产品。</li>
+</ul></div></section><section class="domain" id="d12"><h2 class="domain-title"><span class="dot">📈</span>自省 / 审查 / 安全审计</h2><div class="md"><h2>0. 一句话差异</h2>
+<ul>
+<li><strong>QoderWork</strong>：<strong>自我改进闭环</strong>——<code>skill_evolution_suggestions</code>(skill_suggest 工具，<strong>仅记录待用户批准</strong>不自动改) + <code>nudge_logs</code>(任务后自动复盘 reviewType agent/skill) + 记忆反思；都挂 awareness 体系。</li>
+<li><strong>OpenClaw</strong>：<strong>安全态势审计</strong>——<code>audit.deep/nondeep</code> 扫已装技能/插件代码安全、插件信任、workspace 技能 symlink 逃逸、include 文件权限 + <code>status.scan</code>。</li>
+<li><strong>Hermes</strong>：<strong>自我改进 + 技能安全</strong>——<code>background_review</code>(每轮后另起线程跑<strong>只读</strong> review agent) + <code>curator</code>(周期策展 stale→archive) + <code>skills_ast_audit</code>(AST 扫技能危险调用)。</li>
+</ul>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务后自我复盘</td>
+<td>✅ nudge review</td>
+<td>(偏安全审计)</td>
+<td>✅ background_review(只读)</td>
+</tr>
+<tr>
+<td>技能进化建议</td>
+<td>✅ skill_suggest(待批准)</td>
+<td>—</td>
+<td>(curator 策展)</td>
+</tr>
+<tr>
+<td>记忆/技能策展</td>
+<td>✅ 记忆反思</td>
+<td>—</td>
+<td>✅ curator(stale→archive)</td>
+</tr>
+<tr>
+<td>技能代码安全扫描</td>
+<td>install-security-scan</td>
+<td>✅ skill-scanner</td>
+<td>✅ skills_ast_audit(AST)</td>
+</tr>
+<tr>
+<td>插件信任审计</td>
+<td>—</td>
+<td>✅ collectPluginsTrustFindings</td>
+<td>(Tirith)</td>
+</tr>
+<tr>
+<td>symlink 逃逸检测</td>
+<td>—</td>
+<td>✅ symlink escape</td>
+<td>path_security</td>
+</tr>
+<tr>
+<td>深/浅审计档</td>
+<td>—</td>
+<td>✅ deep/nondeep</td>
+<td>review enabled/paused</td>
+</tr>
+<tr>
+<td>自我授权防护</td>
+<td>✅ 人审批准</td>
+<td>—</td>
+<td>✅ review 只读自动拒命令</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork 自我改进]
+    Q1[任务后 awareness review] --&gt; Q2[skill_suggest 仅记录]
+    Q2 --&gt; Q3[(skill_evolution_suggestions pending)]
+    Q3 --&gt; Q4{用户批准} --&gt;|是| Q5[技能演化]
+    Q1 --&gt; Q6[nudge_logs 主动提醒]
+  end
+  subgraph OC[OpenClaw 安全审计]
+    O1[audit.deep/nondeep] --&gt; O2[skill-scanner 代码安全]
+    O1 --&gt; O3[plugin trust]
+    O1 --&gt; O4[symlink 逃逸/文件权限]
+  end
+  subgraph HM[Hermes 自省]
+    H1[每轮后] --&gt; H2[background_review 独立线程]
+    H2 --&gt; H3[auto_deny 外部命令 只读]
+    H3 --&gt; H4[写回记忆]
+    H5[curator stale→archive]
+    H6[skills_ast_audit AST]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li><code>skill_suggest</code> 工具(定义 :44448 "only records pending suggestions for user approval; does not create/edit skill files")→<code>handleSkillSuggest</code>(:69324)→<code>writeSkillEvolutionSuggestions</code>(:69038) 落 <code>skill_evolution_suggestions</code>(action/summary/rationale/status/snapshot_path)；<code>nudge_logs</code>(reviewType agent/skill, insertNudgeLogs:69295)；<code>isSkillEvolutionEffectivelyEnabled</code>(:3813)/<code>isNudgeEnabled</code>(:3800)；记忆反思(维度03)。三者构成"记忆-复盘-进化"闭环。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>audit.deep.runtime</code>/<code>audit.nondeep.runtime</code>：<code>collectInstalledSkillsCodeSafetyFindings</code>/<code>collectPluginsCodeSafetyFindings</code>/<code>collectPluginsTrustFindings</code>/<code>collectWorkspaceSkillSymlinkEscapeFindings</code>/<code>collectIncludeFilePermFindings</code>/<code>collectStateDeepFilesystemFindings</code>；<code>skill-scanner</code>/<code>includes-scan</code>/<code>audit-fs</code>；<code>status.scan.runtime</code> 汇总。防御性"查有没有被植入恶意技能/配置"。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>background_review.spawn_background_review_thread</code>(:562 返回 target+prompt，AIAgent 起 threading.Thread)，<code>_bg_review_auto_deny</code>(:347 <strong>外部命令一律拒</strong>只读)，<code>build_memory_write_metadata</code>(:300 标注 review 来源写回)，可针对 memory/skills；<code>curator.py</code> is_enabled/get_stale_after_days/get_archive_after_days(:148-178 周期策展)；<code>skills_ast_audit._scan_source</code>(:25 ast.NodeVisitor visit_Call/Import 扫危险)。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>正交定位</strong>：QoderWork+Hermes 偏"<strong>向内自我改进</strong>"(复盘→策展→技能进化)；OpenClaw 偏"<strong>向外安全防御</strong>"(查危险技能/插件/配置)。</li>
+<li><strong>自我授权防护</strong>：QoderWork 用"AI 只建议、人批准"(skill_suggest 不直接改文件)；Hermes 用"review agent 全程只读自动拒命令"——两者都克制地防止"自省变自我乱改"。</li>
+<li><strong>技能安全扫描共识</strong>：三者都做(QoderWork install-scan / OpenClaw skill-scanner / Hermes AST)——因"技能=可执行代码"，开放生态必防供应链植入。</li>
+</ul></div></section><section class="domain" id="d13"><h2 class="domain-title"><span class="dot">🖥️</span>CLI / TUI / UI</h2><div class="md"><h2>0. 一句话差异</h2>
+<p>三种入口范式正好互补：
+- <strong>QoderWork</strong>：<strong>桌面 GUI</strong>——Electron React SPA，tRPC-over-IPC 调 46 router，聊天视图 + artifact 预览 + MCP-UI app + Canvas/Writing webview；无 CLI REPL。
+- <strong>OpenClaw</strong>：<strong>IM 优先 + Web 控制台</strong>——commander 子命令 CLI(acp/browser/channels/mcp/config) 主要用于配置运维，<code>control-ui</code> Web 控制台，丰富 <code>onboard-*</code> 引导；日常交互在 IM。
+- <strong>Hermes</strong>：<strong>终端优先</strong>——<code>cli.py</code>(1.5万行 REPL，丰富 slash) + <code>hermes_cli/</code> ~90 子命令 + 三套 UI(curses/Ink TUI/Web) + <code>tui_gateway</code> WS + skin_engine 主题。</p>
+<h2>1. 能力对照（三列）</h2>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>QoderWork</th>
+<th>OpenClaw</th>
+<th>Hermes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主交互面</td>
+<td>桌面 GUI</td>
+<td>IM + Web 控制台</td>
+<td>终端 REPL/TUI</td>
+</tr>
+<tr>
+<td>交互式 REPL</td>
+<td>—</td>
+<td>(IM 为主)</td>
+<td>✅ cli.py 全功能</td>
+</tr>
+<tr>
+<td>子命令 CLI</td>
+<td>—</td>
+<td>✅ commander 多组</td>
+<td>✅ ~90 模块</td>
+</tr>
+<tr>
+<td>桌面 GUI</td>
+<td>✅ Electron React</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>终端 TUI</td>
+<td>—</td>
+<td>—</td>
+<td>✅ curses+Ink</td>
+</tr>
+<tr>
+<td>Web 控制台</td>
+<td>(GUI 内)</td>
+<td>✅ control-ui</td>
+<td>✅ web+tui_gateway WS</td>
+</tr>
+<tr>
+<td>引导向导</td>
+<td>GUI onboarding</td>
+<td>✅ onboard-*/channel-setup</td>
+<td>✅ setup.py/doctor</td>
+</tr>
+<tr>
+<td>富渲染</td>
+<td>✅ markdown+KaTeX+artifact</td>
+<td>终端高亮</td>
+<td>✅ markdown+skin</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 对比图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph QW[QoderWork 桌面GUI]
+    Q1[Electron React SPA] --&gt;|electronTRPC IPC| Q2[46 router]
+    Q1 --&gt; Q3[chat-view/artifact/MCP-UI]
+    Q1 --&gt; Q4[Canvas/Writing webview]
+  end
+  subgraph OC[OpenClaw IM+Web]
+    O1[commander CLI: acp/browser/channels/mcp/config]
+    O2[control-ui Web 控制台]
+    O3[onboard-* 引导]
+  end
+  subgraph HM[Hermes 终端]
+    H1[cli.py REPL slash] --- H2[hermes_cli ~90子命令]
+    H3[curses_ui] 
+    H4[ui-tui Ink/TS]
+    H5[tui_gateway WS] --- H4
+    H6[web/website + skin_engine]
+  end
+</pre>
+<h2>3. QoderWork 实现</h2>
+<ul>
+<li>preload 暴露 <code>electronTRPC</code>/<code>webUtils</code>/<code>desktopApi</code>/<code>electron</code> 四桥；renderer chunks <code>index-BLAH5viJ</code>(主)/<code>chat-view-inner</code>(485符号)/<code>chat-markdown-renderer</code>(remark-cjk+KaTeX+streamdown)/<code>artifact-preview</code>/<code>mcp-app-preview</code>+<code>use-mcp-app-bridge</code>(MCP-UI)/<code>task-monitor-content</code>/<code>quickpick</code>；Canvas/Writing 独立 webview(legokit)。下行 broadcastStreamChunk，上行 tRPC。</li>
+</ul>
+<h2>4. OpenClaw 实现</h2>
+<ul>
+<li><code>*-cli-*.js</code> commander 子命令(acp-cli/browser-cli/channels-cli/clawbot-cli/config-cli/completion-cli/mcp-cli)，入口 openclaw.mjs→dist/index.js；<code>onboard-*</code>/<code>onboard-channels-*</code>/<code>channel-setup</code>/<code>setup-surface</code> 引导；<code>control-ui-assets</code>/<code>control-ui-shared</code> Web 控制台(<code>ensureControlUiAllowedOriginsForNonLoopbackBind</code> 安全绑定)。</li>
+</ul>
+<h2>5. Hermes 实现</h2>
+<ul>
+<li><code>cli.py</code>(1.5万行) <code>HermesCLI</code>，<code>_looks_like_slash_command</code>(:2753)，处理器 <code>_handle_rollback/snapshot/stop/agents/paste/image/tools_command</code>(:5443-6121)；<code>hermes_cli/</code>~90 模块(auth/cron/kanban/gateway/service_manager/models/doctor/security_audit/backup/profiles/completion/psutil_android…)；<code>tui_gateway/</code>(server/ws/render/transport/slash_worker)；<code>ui-tui/</code>(TS/Ink 包)；<code>curses_ui.py</code>+<code>skin_engine.py</code>。</li>
+</ul>
+<h2>6. 三方结论</h2>
+<ul>
+<li><strong>入口范式三分</strong>：QoderWork=桌面 GUI(富渲染/artifact/MCP-UI)；OpenClaw=IM 优先 + Web 控制台(CLI 偏运维)；Hermes=终端优先(REPL+三套 TUI+90 子命令)——覆盖 桌面/IM/终端 三种用户入口。</li>
+<li><strong>UI 数量</strong>：Hermes 最多(curses+Ink+Web+WS+皮肤)；QoderWork 单一但最"产品化"(Electron 富 GUI)；OpenClaw 聚焦 control-ui + 强引导。</li>
+<li><strong>运维 CLI</strong>：Hermes <code>hermes_cli/</code>~90 模块最完整(含 Android/服务化/诊断/备份/安全审计)。</li>
+</ul></div></section>
+<section id="method"><h2 class="plain">🔬 方法与边界</h2><div class="md">
+<ul>
+<li><b>QoderWork</b>：源 <code>QoderWork-arm64.dmg</code> 反编译(app.asar + qodercli)，详见其专属 13 域深挖报告；行号引用美化后 <code>main.pretty.js</code> 等。</li>
+<li><b>OpenClaw</b>：源 <code>/opt/homebrew/lib/node_modules/openclaw/dist</code>（4242 文件，未压缩 ESM，导出别名保留真名，grep 真名定位）；过滤 vendored 依赖（highlight.js 语言/music-metadata 等），只看 <code>*.runtime-*.js</code> 及命名模块。</li>
+<li><b>Hermes</b>：源 <code>/Users/pot/.hermes/hermes-agent</code>（~6 万行 Python 源码，函数名即真名）。</li>
+<li>所有论断带 <code>文件:行号</code>；行号为对应文件实际行。两库均为可读源码，结论可靠。</li>
+<li><b>黑盒</b>：OpenClaw 走 CLI provider 时，外部 agent(claude/codex 等) 内部决策不在本报告范围；Hermes 无此问题（自持循环）。</li>
+<li>三方维度对齐 QoderWork 报告的 13 个功能域；各自术语差异已在每维度归一。</li>
+</ul></div></section>
+<div class="foot">QoderWork 0.5.9 × OpenClaw 2026.3.24 × Hermes(NousResearch) · 13 维三方函数级对比 · 证据目录 research/dims/ · 仅供技术研究</div>
+</main></div>
+<script>
+mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose',themeVariables:{fontSize:'13px'},flowchart:{useMaxWidth:true,htmlLabels:true,curve:'basis'},sequence:{useMaxWidth:true}});
+const items=[...document.querySelectorAll('.nav-item')];const map={};items.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){items.forEach(n=>n.classList.remove('active'));const a=map[e.target.id];if(a)a.classList.add('active');}});},{rootMargin:'-10% 0px -80% 0px'});
+document.querySelectorAll('section[id], .hero[id]').forEach(s=>obs.observe(s));
+</script></body></html>

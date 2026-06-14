@@ -1,0 +1,2455 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>QoderWork 逆向架构全解</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --bg2:#161b22; --bg3:#1c2330; --line:#2a3340; --fg:#e6edf3; --mut:#8b96a5;
+  --acc:#4dd6c1; --acc2:#7aa2f7; --warn:#e3b341; --pink:#f778ba; --code:#0a0e14;
+  --q:#7aa2f7; --m:#f778ba; --s:#4dd6c1;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px;line-height:1.72}
+.mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+.kk{color:var(--acc)}
+a{color:var(--acc2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* layout */
+.wrap{display:flex;min-height:100vh}
+.side{width:280px;flex:0 0 280px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:var(--bg2);border-right:1px solid var(--line);padding:18px 12px}
+.brand{font-weight:800;font-size:17px;letter-spacing:.3px;padding:6px 10px 2px;color:#fff}
+.brand small{display:block;color:var(--mut);font-weight:500;font-size:11.5px;margin-top:3px}
+.nav-sec{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin:16px 10px 6px}
+.nav-item{display:block;padding:6px 10px;border-radius:7px;color:var(--fg);font-size:13.5px;margin:1px 0}
+.nav-item:hover{background:var(--bg3);text-decoration:none}
+.nav-item.active{background:linear-gradient(90deg,rgba(77,214,193,.16),transparent);color:var(--acc);font-weight:600}
+.nav-top{color:#cdd6e0}
+.main{flex:1;min-width:0;max-width:1080px;margin:0 auto;padding:0 40px 120px}
+
+/* hero */
+.hero{padding:54px 0 30px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:34px;margin:0 0 8px;color:#fff;letter-spacing:-.5px}
+.hero .sub{color:var(--mut);font-size:15px;max-width:760px}
+.badges{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+.badge{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:12.5px;color:var(--mut)}
+.badge b{color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0 6px}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .n{font-size:26px;font-weight:800;color:#fff}
+.stat .l{color:var(--mut);font-size:12.5px;margin-top:2px}
+
+h2.domain-title{font-size:25px;margin:46px 0 14px;padding-top:18px;color:#fff;display:flex;align-items:center;gap:11px;border-top:1px solid var(--line)}
+.domain-title .dot{font-size:22px}
+section.domain{scroll-margin-top:20px}
+.section-block{scroll-margin-top:20px}
+h2.plain{font-size:25px;margin:46px 0 14px;padding-top:18px;color:#fff;border-top:1px solid var(--line)}
+
+/* markdown */
+.md h2{font-size:19px;margin:26px 0 10px;color:#fff}
+.md h3{font-size:16.5px;margin:20px 0 8px;color:var(--acc)}
+.md p{margin:10px 0}
+.md ul,.md ol{margin:8px 0;padding-left:22px}
+.md li{margin:3px 0}
+.md code{background:var(--code);border:1px solid var(--line);border-radius:5px;padding:1.5px 6px;font-size:12.8px;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace;color:#ffd9a0}
+.md pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:14px 0}
+.md pre code{background:none;border:none;padding:0;color:#c9d3df;font-size:12.7px;line-height:1.6}
+.md table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.3px;display:block;overflow-x:auto}
+.md th,.md td{border:1px solid var(--line);padding:7px 11px;text-align:left;vertical-align:top}
+.md th{background:var(--bg3);color:#fff;font-weight:600;white-space:nowrap}
+.md tr:nth-child(even) td{background:rgba(255,255,255,.018)}
+.md blockquote{border-left:3px solid var(--acc);margin:12px 0;padding:4px 14px;color:var(--mut);background:rgba(77,214,193,.05)}
+.md strong{color:#fff}
+.md a{word-break:break-word}
+
+/* mermaid */
+.mermaid{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0;text-align:center;overflow-x:auto}
+
+/* tables sections */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+.tbl th{background:var(--bg3);color:#fff;position:sticky;top:0}
+.tbl td.num{text-align:right;color:var(--acc);font-weight:600}
+.tbl td.kinds{color:var(--mut);font-size:12px}
+
+/* trpc explorer */
+.toolbar{display:flex;gap:10px;align-items:center;margin:14px 0}
+#trpcSearch{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:9px;color:var(--fg);padding:10px 14px;font-size:14px}
+#trpcSearch:focus{outline:none;border-color:var(--acc)}
+.legend{font-size:12px;color:var(--mut);display:flex;gap:12px}
+.legend i{font-style:normal;padding:2px 8px;border-radius:5px}
+.trpc-card{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin:9px 0}
+.trpc-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.trpc-head .rname{font-weight:700;color:var(--acc);font-family:"SF Mono",monospace;font-size:14px}
+.trpc-head .rmeta{color:var(--mut);font-size:11.5px}
+.procs{display:flex;flex-wrap:wrap;gap:6px}
+.proc{font-family:"SF Mono",monospace;font-size:11.5px;padding:2.5px 8px;border-radius:6px;border:1px solid var(--line)}
+.proc.query{background:rgba(122,162,247,.12);color:#9db4f5;border-color:rgba(122,162,247,.3)}
+.proc.mutation{background:rgba(247,120,186,.12);color:#f49ccb;border-color:rgba(247,120,186,.3)}
+.proc.subscription{background:rgba(227,179,65,.12);color:#e3b341;border-color:rgba(227,179,65,.3)}
+.proc.unknown{background:rgba(139,150,165,.12);color:#aab4c0}
+
+.note{background:rgba(227,179,65,.08);border:1px solid rgba(227,179,65,.3);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:13.5px;color:#e9d8a6}
+.foot{color:var(--mut);font-size:12px;text-align:center;padding:40px 0 0;border-top:1px solid var(--line);margin-top:50px}
+@media(max-width:880px){.side{display:none}.main{padding:0 18px 80px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --ink: #17202a;
+  --muted: #667085;
+  --line: #d9dee7;
+  --soft: #eef2f6;
+  --accent: #1463ff;
+  --accent-dark: #0b3b94;
+  --code-bg: #111827;
+  --code-ink: #f9fafb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.65;
+}
+a { color: var(--accent-dark); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.site-title {
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.site-nav a {
+  padding: 6px 9px;
+  border-radius: 6px;
+  color: #344054;
+  font-size: 13px;
+}
+.site-nav a:hover {
+  background: var(--soft);
+  text-decoration: none;
+}
+.page-shell {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 30px 22px 56px;
+}
+.hero {
+  padding: 34px 0 24px;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: 34px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.hero p {
+  max-width: 880px;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.card {
+  display: block;
+  padding: 18px;
+  min-height: 154px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+.card:hover {
+  text-decoration: none;
+  border-color: #9db7ff;
+  box-shadow: 0 8px 24px rgba(20, 99, 255, .08);
+}
+.card span {
+  display: inline-flex;
+  margin-bottom: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.content-card {
+  padding: 28px 32px 36px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  overflow: hidden;
+}
+.content-card h1,
+.content-card h2,
+.content-card h3,
+.content-card h4 {
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+.content-card h1 { font-size: 30px; margin: 0 0 18px; }
+.content-card h2 { font-size: 23px; margin: 30px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.content-card h3 { font-size: 19px; margin: 24px 0 10px; }
+.content-card h4 { font-size: 16px; margin: 20px 0 8px; }
+.content-card p { margin: 10px 0; }
+.content-card ul,
+.content-card ol { padding-left: 1.4em; }
+.content-card li { margin: 4px 0; }
+.content-card blockquote {
+  margin: 16px 0;
+  padding: 8px 16px;
+  border-left: 4px solid var(--accent);
+  background: #f8fbff;
+  color: #344054;
+}
+.content-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .92em;
+}
+.content-card p code,
+.content-card li code,
+.content-card td code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #eef2f6;
+  color: #111827;
+}
+.content-card pre {
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  line-height: 1.5;
+}
+.content-card pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.content-card table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 13px;
+}
+.content-card th,
+.content-card td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.content-card th {
+  background: #f1f5f9;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.content-card tr:nth-child(even) td { background: #fbfcfe; }
+.content-card hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 26px 0;
+}
+.source-note {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 820px) {
+  .site-header-inner { align-items: flex-start; flex-direction: column; }
+  .site-nav { justify-content: flex-start; }
+  .hero h1 { font-size: 28px; }
+  .content-card { padding: 22px 18px; }
+}
+</style></head>
+<body>
+<header class="site-header">
+<div class="site-header-inner">
+<a class="site-title" href="/qoder-agent-research-pages/">Qoder Research Pages</a>
+<nav aria-label="站点导航" class="site-nav"><a href="/qoder-agent-research-pages/">首页</a>
+<a href="/qoder-agent-research-pages/agent-research/">Qoder / QD Agent 面试研究总报告</a>
+<a href="/qoder-agent-research-pages/agent-compare/">三方对比：QoderWork / OpenClaw / Hermes</a>
+<a href="/qoder-agent-research-pages/digital-employee-market/">AI 数字员工赛道产品调研报告</a>
+<a href="/qoder-agent-research-pages/qoderwork-deep-dive/">当前：QoderWork 逆向架构全解</a></nav>
+</div>
+</header>
+
+<section class="page-shell hero">
+<h1>QoderWork 逆向架构全解</h1>
+<p>QoderWork 桌面端、SDK、运行时、权限、MCP、插件与数据层的逆向架构拆解。</p>
+<p class="source-note">Source: QoderWork-逆向架构全解.html</p>
+</section>
+
+<div class="wrap">
+<aside class="side">
+<div class="brand">QoderWork 逆向架构全解<small>v0.5.9 · com.qoder.work · 函数级</small></div>
+<a class="nav-item nav-top" href="#overview">总览 Overview</a><a class="nav-item nav-top" href="#stack">技术栈 Stack</a><a class="nav-item nav-top" href="#arch">架构全景 Architecture</a><div class="nav-sec">功能域 · 13 章</div><a class="nav-item" href="#agent-loop">🔁 Agent Loop / 对话流核心</a><a class="nav-item" href="#tools">🛠️ 工具系统与权限控制</a><a class="nav-item" href="#awareness">🧠 Awareness / 记忆 / 人格</a><a class="nav-item" href="#skills">🧩 Skills / Plugins / Legokits</a><a class="nav-item" href="#mcp">🔌 MCP 集成</a><a class="nav-item" href="#im">💬 IM 渠道 + Cron + 内置工具</a><a class="nav-item" href="#browser">🌐 浏览器扩展桥</a><a class="nav-item" href="#voice">🎙️ 语音 / ASR</a><a class="nav-item" href="#auth">🔐 鉴权 / 账号 / 模型</a><a class="nav-item" href="#storage">🗄️ 项目 / 会话 / 存储</a><a class="nav-item" href="#lifecycle">♻️ 生命周期 / 更新 / 遥测</a><a class="nav-item" href="#evolution">📈 技能进化 + Nudge 审查</a><a class="nav-item" href="#ui">🖥️ 渲染层 / UI / Artifacts</a><div class="nav-sec">参考 Reference</div><a class="nav-item nav-top" href="#trpc">tRPC 接口浏览器</a><a class="nav-item nav-top" href="#symbols">函数级索引</a><a class="nav-item nav-top" href="#method">方法与边界</a>
+</aside>
+<main class="main">
+<div class="hero" id="overview">
+<h1>QoderWork 逆向架构全解</h1>
+<div class="sub">基于 <code>QoderWork-arm64.dmg</code> 的反编译产物（Electron <code>app.asar</code> + <code>qodercli</code> 二进制 + 资源），
+    对其全部功能做函数级梳理：从 Agent Loop、工具权限、记忆觉知、能力生态、MCP、IM 接入、浏览器控制、VM 沙箱，到存储与渲染层。
+    所有论断均带 <code>文件:行号</code> 证据。</div>
+<div class="badges">
+<span class="badge">应用 <b>qoder-work 0.5.9</b></span>
+<span class="badge">Agent SDK <b>@ali/qoder-agent-sdk-next 1.0.3</b></span>
+<span class="badge">引擎 <b>qodercli</b>(Bun, 99MB)</span>
+<span class="badge">架构 <b>Electron + tRPC + qodercli</b></span>
+<span class="badge">协议 <b>stream-json over stdio</b></span>
+</div>
+<div class="stats">
+<div class="stat"><div class="n">46</div><div class="l">tRPC Router</div></div>
+<div class="stat"><div class="n">504</div><div class="l">Procedure（接口）</div></div>
+<div class="stat"><div class="n">26,919</div><div class="l">已索引符号</div></div>
+<div class="stat"><div class="n">13</div><div class="l">功能域深挖章节</div></div>
+</div>
+<div class="note">📌 <b>一句话结论</b>：QoderWork 是「Electron 外壳 + Claude-Code 形态的 <code>qodercli</code> 引擎」。主进程用 tRPC 暴露 504 个接口，
+    通过自家 <code>@ali/qoder-agent-sdk-next</code> 以 <b>stream-json over stdio</b> 协议驱动 <code>qodercli</code> 子进程；在其之上叠加了
+    <b>觉知记忆、技能进化、Legokit 模式应用、IM 接入、浏览器/电脑控制、VM 沙箱</b>等差异化能力。</div>
+</div>
+<section class="section-block" id="stack">
+<h2 class="plain">🧱 技术栈 Stack</h2>
+<table class="tbl"><thead><tr><th>层</th><th>技术</th><th>作用</th><th>版本</th></tr></thead>
+<tbody><tr><td>运行时</td><td class="mono kk">Electron</td><td>桌面外壳；主/渲染/preload 三进程</td><td class="mono">—</td></tr>
+<tr><td>Agent 引擎</td><td class="mono kk">qodercli (Bun 打包 99MB Mach-O)</td><td>Claude-Code 形态的 CLI，stream-json over stdio</td><td class="mono">bin/qodercli</td></tr>
+<tr><td>Agent SDK</td><td class="mono kk">@qoder-ai/qoder-agent-sdk</td><td>实为 npm:@ali/qoder-agent-sdk-next</td><td class="mono">1.0.3</td></tr>
+<tr><td>IPC/RPC</td><td class="mono kk">@trpc/server + trpc-electron</td><td>渲染↔主进程类型安全调用</td><td class="mono">11.7.1 / 0.1.2</td></tr>
+<tr><td>存储</td><td class="mono kk">better-sqlite3 + drizzle-orm</td><td>WAL；13 张表 + FTS5 trigram</td><td class="mono">11.8.1 / 0.45.1</td></tr>
+<tr><td>协议</td><td class="mono kk">@modelcontextprotocol/sdk</td><td>MCP 客户端/服务端 + ext-apps(UI)</td><td class="mono">1.25.3</td></tr>
+<tr><td>校验</td><td class="mono kk">zod</td><td>全 procedure 输入校验</td><td class="mono">3.24.1</td></tr>
+<tr><td>终端/VM</td><td class="mono kk">node-pty</td><td>spawn hvkit / shell</td><td class="mono">1.1.0</td></tr>
+<tr><td>浏览器</td><td class="mono kk">playwright-core + 自研 CDP 扩展</td><td>控制用户真实 Chrome</td><td class="mono">1.58.2</td></tr>
+<tr><td>Computer Use</td><td class="mono kk">@nut-tree-fork/nut-js + uiohook-napi</td><td>鼠标键盘自动化 + 全局热键</td><td class="mono">4.2.6 / 1.5.4</td></tr>
+<tr><td>调度</td><td class="mono kk">croner</td><td>Cron 定时任务</td><td class="mono">10.0.1</td></tr>
+<tr><td>IM</td><td class="mono kk">dingtalk-stream / @larksuiteoapi / @wecom/aibot / ms-365-mcp</td><td>钉钉/飞书/企业微信/Teams</td><td class="mono">—</td></tr>
+<tr><td>遥测</td><td class="mono kk">@arms/rum-electron + OpenTelemetry</td><td>崩溃/异常/OTLP 日志</td><td class="mono">0.0.4 / 0.218</td></tr>
+<tr><td>更新</td><td class="mono kk">electron-updater</td><td>app-update.yml 多渠道</td><td class="mono">6.7.3</td></tr>
+<tr><td>文档/产物</td><td class="mono kk">sharp / pptxgenjs / pdf-lib</td><td>图像/PPTX/PDF 生成预览</td><td class="mono">—</td></tr>
+<tr><td>构建</td><td class="mono kk">vite</td><td>渲染层打包</td><td class="mono">6.3.4</td></tr></tbody></table>
+</section>
+<section class="section-block" id="arch">
+<h2 class="plain">🗺️ 架构全景 Architecture</h2>
+<p>进程与数据流总览（渲染 ↔ preload ↔ 主进程 ↔ SDK ↔ qodercli ↔ 外部能力）：</p>
+<pre class="mermaid">flowchart TB
+  subgraph RENDER["渲染进程 · React SPA"]
+    UI["聊天视图 / Artifacts / MCP-UI / 任务监视 / QuickPick / 语音浮层"]
+  end
+  subgraph PRELOAD["preload (contextBridge)"]
+    BR["electronTRPC · webUtils · desktopApi · electron"]
+  end
+  subgraph MAIN["主进程 (Electron) · 46 tRPC router / 504 procedure"]
+    APPR["createAppRouter"]
+    UCE["UnifiedChatExecutor.executeTask\n(Agent Loop)"]
+    CSS["ChatSessionService\n队列/运行态"]
+    CB["canUseTool 权限门 + hooks"]
+    AW["Awareness/记忆 (FTS5)"]
+    MCPP["McpClientPool + builtin servers"]
+    LK["LegokitRegistry + 隔离运行时"]
+    CM["ChannelManager / ReplyDispatcher"]
+    CRON["CronService (croner)"]
+    DB[("SQLite\nbetter-sqlite3 + drizzle")]
+    AUTH["AuthManager + qoder-auth-wasm"]
+  end
+  subgraph SDK["@qoder-ai/qoder-agent-sdk"]
+    PT["ProcessTransport\nstdio + stream-json"]
+  end
+  CLI["qodercli (Bun 二进制)\n--print --output-format stream-json"]
+  subgraph EXT["外部能力"]
+    CHROME["用户 Chrome (CDP 扩展 :16789)"]
+    VM["hvkit 微 VM 沙箱"]
+    IM["钉钉/飞书/企业微信/Teams"]
+    APPLE["Apple: 邮件/日历/备忘/提醒/通讯录"]
+    CLOUD["Qoder 云: 鉴权/模型/ASR/遥测"]
+  end
+
+  UI &lt;--&gt; BR &lt;--&gt; APPR
+  APPR --&gt; CSS --&gt; UCE
+  UCE --&gt; CB
+  UCE --&gt; AW
+  UCE --&gt; LK
+  UCE --&gt; MCPP
+  UCE --&gt; PT --&gt; CLI
+  CLI -. canUseTool/hook .-&gt; CB
+  CLI -. MCP 工具 .-&gt; MCPP
+  MCPP --&gt; CHROME
+  MCPP --&gt; APPLE
+  UCE --&gt; VM
+  CM --&gt; CSS
+  CRON --&gt; CSS
+  CM &lt;--&gt; IM
+  UCE --&gt; DB
+  AUTH --&gt; CLI
+  AUTH &lt;--&gt; CLOUD
+  UCE &lt;--&gt; CLOUD</pre>
+<p>Agent Loop 一轮的最小时序（详见 <a href="#agent-loop">第 01 章</a>）：</p>
+<pre class="mermaid">sequenceDiagram
+  autonumber
+  participant R as Renderer
+  participant T as chatStreamRouter
+  participant C as ChatSessionService
+  participant E as UnifiedChatExecutor
+  participant S as qoder-agent-sdk
+  participant Q as qodercli
+  R-&gt;&gt;T: submitMessage(prompt,mode,model)
+  T-&gt;&gt;C: submitOrQueue (detached)
+  C-&gt;&gt;E: executeNow → executeTask
+  E-&gt;&gt;E: legokit/awareness/mentions/SDK options
+  E-&gt;&gt;S: submitMainSessionTurn
+  S-&gt;&gt;Q: spawn (stream-json over stdio)
+  loop for await 事件流
+    Q--&gt;&gt;E: text/tool/result/compact 事件
+    E--&gt;&gt;R: broadcastStreamChunk
+    Q--&gt;&gt;E: canUseTool(工具)
+    E--&gt;&gt;R: permission-request
+    R-&gt;&gt;T: respondToolApproval
+    T--&gt;&gt;E: resolve → allow/deny
+  end
+  E-&gt;&gt;E: 落库 + 队列下一条</pre>
+</section>
+<section class="domain" id="agent-loop">
+<h2 class="domain-title"><span class="dot">🔁</span>Agent Loop / 对话流核心</h2>
+<div class="md"><blockquote>
+<p>证据均来自反编译美化后的主进程 bundle <code>/tmp/qw-pretty/main/main.pretty.js</code> 与 SDK <code>/tmp/qw-pretty/sdk/index.pretty.js</code>。行号为美化后行号。</p>
+</blockquote>
+<h2 id="0">0. 一句话结论</h2>
+<p>QoderWork 的「Agent Loop」= <strong>renderer 经 tRPC 提交消息 → 主进程 <code>ChatSessionService</code> 队列化 → <code>UnifiedChatExecutor.executeTask</code> 组装一份 Claude-Agent-SDK 风格的 <code>query()</code> options → <code>@qoder-ai/qoder-agent-sdk</code> 通过 <code>ProcessTransport</code> 以 stdio + 行分隔 stream-json 协议 spawn <code>qodercli</code> 二进制 → 主进程 <code>for await</code> 消费事件流 → 投影成 UI 消息 / 落库 / 触发权限确认</strong>。<code>qodercli</code> 是一个 Claude Code CLI 形态的 fork（同样的 <code>--print --output-format stream-json --permission-prompt-tool stdio</code> 等参数）。</p>
+<h2 id="1">1. 功能清单（用户可见）</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>入口 procedure</th>
+<th>实现落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发送消息 / 新会话</td>
+<td><code>chats.submitMessage</code></td>
+<td><code>chatStreamRouter</code> main.js:88363 → <code>unifiedExecutor.submitOrQueue</code></td>
+</tr>
+<tr>
+<td>运行中再发→排队</td>
+<td>同上（自动）</td>
+<td><code>ChatSessionService.submitOrQueue</code> main.js:78668</td>
+</tr>
+<tr>
+<td>取消队列项</td>
+<td><code>chats.removeFromQueue</code></td>
+<td>main.js:78720</td>
+</tr>
+<tr>
+<td>查看队列</td>
+<td><code>chats.getQueue</code></td>
+<td><code>getQueueItems</code> main.js:78732</td>
+</tr>
+<tr>
+<td>停止任务</td>
+<td><code>agent.cancel</code></td>
+<td><code>controlsRouter.cancel</code> main.js:86639</td>
+</tr>
+<tr>
+<td>后台运行（detach）</td>
+<td><code>chats.detachStream</code></td>
+<td><code>detachTask</code></td>
+</tr>
+<tr>
+<td>流式状态查询</td>
+<td><code>chats.getStreamingState</code> / <code>getAllStreamingStates</code></td>
+<td>main.js:88451</td>
+</tr>
+<tr>
+<td>任务是否运行</td>
+<td><code>chats.isTaskRunning</code></td>
+<td>main.js:88441</td>
+</tr>
+<tr>
+<td>工具权限确认</td>
+<td><code>agent.respondToolApproval</code> / <code>resolvePermission</code></td>
+<td>main.js:86655 / 86672</td>
+</tr>
+<tr>
+<td>plan / agent 模式</td>
+<td><code>submitMessage.input.mode</code></td>
+<td><code>permissionMode: plan?"plan":"default"</code></td>
+</tr>
+<tr>
+<td>自治级别 suggest/supervised/auto</td>
+<td><code>input.autonomyLevel</code></td>
+<td>影响 canUseTool 行为</td>
+</tr>
+<tr>
+<td>切换会话模型</td>
+<td><code>agent.setCurrentSessionModel</code></td>
+<td><code>setMainSessionQueryRuntimeModel</code> main.js:86700</td>
+</tr>
+<tr>
+<td>会话级模型等级</td>
+<td><code>chats.setSessionModelLevel</code> / <code>get</code></td>
+<td>subChatRouter</td>
+</tr>
+<tr>
+<td>回滚到某条消息</td>
+<td><code>chats.rollbackToMessage</code></td>
+<td>subChatRouter main.js:85676</td>
+</tr>
+<tr>
+<td>断点续传 resume</td>
+<td>自动（metadata.shouldResume）</td>
+<td>executeTask 中 <code>ue</code></td>
+</tr>
+<tr>
+<td>上下文用量</td>
+<td><code>context.getUsage</code> + 流内 <code>result</code> 事件</td>
+<td><code>resolveTurnContextUsageSnapshot</code></td>
+</tr>
+<tr>
+<td>自动生成标题</td>
+<td><code>generateTitle:true</code></td>
+<td><code>requestMainSessionTitleGeneration</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="2">2. 全链路时序图</h2>
+<pre class="mermaid">sequenceDiagram
+    autonumber
+    participant R as Renderer (React)
+    participant P as preload(electronTRPC)
+    participant Router as chatStreamRouter
+    participant CSS as ChatSessionService
+    participant UCE as UnifiedChatExecutor.executeTask
+    participant SDK as qoder-agent-sdk(query)
+    participant PT as ProcessTransport
+    participant CLI as qodercli(子进程)
+
+    R-&gt;&gt;P: trpc.chats.submitMessage(prompt,cwd,mode,autonomyLevel,model...)
+    P-&gt;&gt;Router: IPC → mutation
+    Router-&gt;&gt;Router: isNewCommand? / 版本封禁? / resetComputerUseSession()
+    Router-&gt;&gt;CSS: unifiedExecutor.submitOrQueue({...,detached:true,generateTitle:true})
+    alt 已有任务在跑
+        CSS-&gt;&gt;CSS: queues.push(item) + broadcastQueueState
+        CSS--&gt;&gt;R: {queued:true}
+    else 空闲
+        CSS-&gt;&gt;UCE: executeNow → runner.executeTask
+    end
+    UCE-&gt;&gt;UCE: 解析 LegoKit / workspaceMode / 约束
+    UCE-&gt;&gt;UCE: getOrCreateAbortController + createStreamId + registerRunningTurn
+    UCE-&gt;&gt;UCE: 技能快照 diff / MCP 工具懒加载 diff
+    UCE-&gt;&gt;UCE: 建投影器(SdkMessageToSessionEventAdapter, TurnProjector, ProjectionPatchEmitter)
+    UCE-&gt;&gt;R: broadcastStreamStart(userMessage)
+    UCE-&gt;&gt;UCE: awareness 决策 / parseMainSessionMentions / 注入 system-reminder
+    UCE-&gt;&gt;UCE: 组装 SDK options Pr(systemPrompt,agents,mcpServers,skills,canUseTool,hooks,permissionMode)
+    UCE-&gt;&gt;SDK: create/resume/recreate runtime + submitMainSessionTurn(userMessage)
+    SDK-&gt;&gt;PT: ProcessTransport.initialize()
+    PT-&gt;&gt;CLI: spawn qodercli --print --output-format stream-json --input-format stream-json ...
+    PT-&gt;&gt;CLI: stdin 写入 stream-json(用户消息)
+    loop for await (事件流)
+        CLI--&gt;&gt;PT: stdout 行分隔 JSON 事件
+        PT--&gt;&gt;SDK: 解析成 SDKMessage
+        SDK--&gt;&gt;UCE: asyncIterator.next()
+        alt assistant text/tool 事件
+            UCE-&gt;&gt;R: broadcastStreamChunk(投影 patch)
+        else 工具需要确认
+            CLI--&gt;&gt;UCE: canUseTool(toolName,input)
+            UCE-&gt;&gt;R: emit permission-request
+            R-&gt;&gt;Router: agent.respondToolApproval(approved)
+            Router--&gt;&gt;UCE: resolvePendingApproval → Promise resolve
+            UCE--&gt;&gt;CLI: {behavior:allow|deny}
+        else result 事件
+            UCE-&gt;&gt;UCE: resolveTurnContextUsageSnapshot → 落库 ctx usage
+        else compact_boundary
+            UCE-&gt;&gt;UCE: updateSubChatSessionMemoryPath(记忆路径)
+        end
+    end
+    UCE-&gt;&gt;UCE: 落库消息 / updateChatTaskStatus(Done) / processNextInQueue
+</pre>
+<h2 id="3">3. 函数级实现链路（带行号）</h2>
+<h3 id="31-chatstreamroutersubmitmessagemainjs88363">3.1 入口：<code>chatStreamRouter.submitMessage</code>（main.js:88363）</h3>
+<ul>
+<li>输入 schema：<code>subChatId, chatId, prompt, cwd, projectPath?, mode("plan"|"agent"=agent), autonomyLevel("suggest"|"supervised"|"auto"=auto), sessionId?, model?, maxThinkingTokens?, images[], historyEnabled?, userMessageParts[], mcpAppModelContext?, userSelectedDirectories[], outputDirectory?, disabledUserSkillFolders[]</code>。</li>
+<li>逻辑：<code>isNewCommand(prompt)</code>（<code>/new</code> 之类）→ <code>createNewSubChat</code> + <code>broadcastChatCreated</code>；<code>isCurrentVersionBlocked(app.getVersion())</code> 版本封禁直接返回 <code>blocked:true</code>；<code>resetComputerUseSession()</code>；核心 → <code>unifiedExecutor.submitOrQueue({...input, detached:true, generateTitle:true, originWebContentsId})</code>。</li>
+</ul>
+<h3 id="32-chatsessionservicesubmitorqueuemainjs78668">3.2 队列化：<code>ChatSessionService.submitOrQueue</code>（main.js:78668）</h3>
+<pre><code class="language-js">submitOrQueue(e) {
+  const { subChatId: n } = e, i = n.slice(-8);
+  if (this.isTaskRunning(n) || this.processingQueues.has(n)) {
+    const s = { id: crypto.randomUUID(), params: e, queuedAt: new Date,
+                promptPreview: (e.prompt||"").slice(0,100), attachmentCount: e.images?.length||0,
+                callerContext: e.callerContext };
+    const o = this.queues.get(n) || [];
+    o.push(s); this.queues.set(n, o); this.broadcastQueueState(n);
+    return { queued: true }
+  }
+  return this.executeNow(e), { queued: false }
+}
+</code></pre>
+<ul>
+<li><code>runningTurns: Map</code>（subChatId→turn 元信息）、<code>queues: Map</code>、<code>processingQueues: Set</code>（防重入）。</li>
+<li><code>processNextInQueue</code>（main.js:78712）：<code>setTimeout(...,500)</code> 后 <code>executeNow(next.params)</code>，串行消费同一会话队列。</li>
+<li><code>executeNow</code>（main.js:78764）：<code>this.runner.executeTask(e).catch(...)</code>。runner 由 <code>UnifiedChatExecutor</code> 构造时 <code>chatSessionService.setRunner(...)</code> 注入（main.js:83528）。</li>
+</ul>
+<h3 id="33-unifiedchatexecutorexecutetaskmainjs83535">3.3 核心：<code>UnifiedChatExecutor.executeTask</code>（main.js:83535）</h3>
+<p>执行顺序（关键步骤+行号）：
+1. <strong>LegoKit/工作区模式解析</strong>（83558-83583）：<code>getChatActiveLegokitId</code> → <code>legokitRegistry.get</code> → <code>getSubChatWorkspaceModeId</code>（默认 <code>general</code>）→ <code>resolveLegokitExecution</code>（得到 <code>forceNoVm</code> / <code>disallowedTools</code>）→ <code>loadLegokitPackageContents</code>（systemPrompt + agents）。
+2. <strong>流控基元</strong>（83589-83591）：<code>getOrCreateAbortController(subChatId)</code>、<code>createStreamId</code>、<code>crypto.randomUUID()</code>（assistantMessageId）。
+3. <strong>登记运行</strong>（83604）：<code>chatSessionService.registerRunningTurn({...abortController, assistantMessageId, originWebContentsId})</code> + <code>updateChatTaskStatus(chatId, Running)</code>。
+4. <strong>技能快照 diff</strong>（83613-83622）：<code>hasSkillsChanged</code> → 决定是否重建 runtime（<code>yt</code>）。
+5. <strong>MCP 工具懒加载 diff</strong>（83630-83660）：<code>McpClientPool.getInstance().getEffectiveToolNames</code> 与上次快照比较，决定重建 runtime 还是仅重注入懒加载工具列表（<code>wt</code>）。
+6. <strong>投影管线</strong>（83755-83770）：
+   - <code>SdkMessageToSessionEventAdapter</code>（把 SDK 原始消息→会话事件）
+   - <code>MessagePartProjectionAccumulator</code>（累积消息分片）
+   - <code>sessionMessageProjectorService.createTurnProjector</code>（落库投影器，<code>appendUserMessage</code>/<code>beginAssistantMessage</code>）
+   - <code>ProjectionPatchEmitter</code>（向 renderer 增量推送 patch，经 <code>setEmitter</code>）
+7. <strong>DB 读会话</strong>（83830-83850）：读 <code>sub_chats</code> 行、<code>getLastNMessages(subChatId,5)</code>、<code>sessionId</code>（无则新建并 <code>tt=true</code>）、<strong>resume 检测</strong> <code>pt.metadata.shouldResume &amp;&amp; pt.metadata.sdkMessageUuid → ue</code>。
+8. <strong>广播开始</strong>（83863）：<code>broadcastStreamStart({userMessage,...})</code>。
+9. <strong>Awareness 决策</strong>（83721-83731）：<code>Nt = !legokit &amp;&amp; !cronChat &amp;&amp; !awarenessDisabled &amp;&amp; isAwarenessEffectivelyEnabled()</code>。
+10. <strong>mention 解析 + 注入</strong>（83830-83880）：<code>parseMainSessionMentions</code>（@file/@folder/@skill/@agent/@tool/@mcp-server/@plugin）→ <code>buildAgentsOption</code>（subagents）；<code>pushMainSessionReminder</code> 注入 <code>&lt;system-reminder&gt;</code>；DWS/Lark <strong>关键词嗅探</strong>（命中"钉钉/飞书"自动提示读对应 SKILL.md）。
+11. <strong>执行环境</strong>（83898-83910）：<code>isUsingVm() &amp;&amp; !forceNoVm</code> → <code>executionEnv="vm"</code> + <code>ensureVmMounts</code>，否则 <code>"local"</code>。
+12. <strong>组装 SDK options <code>Pr</code></strong>（84050-84110）：见 §4。
+13. <strong>runtime 生命周期</strong>（84120-84150）：<code>recreateMainSessionQueryRuntime</code>（重建）/ <code>createMainSessionQueryRuntime</code>（新建，<code>tt</code>）/ <code>resumeMainSessionQueryRuntime</code>（续传）。
+14. <strong>提交 turn</strong>（84355）：<code>submitMainSessionTurn(subChatId, userMessage, sessionLevelHandler, {awarenessEnabled, mcpTools})</code> 返回 asyncIterable <code>ar</code>。
+15. <strong>事件循环</strong>（84385-84520+）：见 §5。</p>
+<h3 id="34-createcanusetoolcallbackmainjs42749">3.4 工具权限门：<code>createCanUseToolCallback</code>（main.js:42749）</h3>
+<p>作为 SDK options 的 <code>canUseTool</code>，每次工具调用前被 qodercli 经 stdio 反向调用：
+- <strong>plan 模式</strong>：<code>checkPlanModeEditRestriction</code> / <code>isToolBlockedInPlanMode</code> → 编辑类工具 <code>deny</code>。
+- <strong>AskUserQuestion</strong>：emit <code>ask-user-question</code> → 等 renderer。
+- <strong>toolConfirmationRegistry</strong>：注册的工具确认 handler。
+- <strong>特定 bash 工具</strong>（<code>dws_bash/lark_cli_bash/aone_kit_bash/a1_bash/ncs_bash</code>）：直接 <code>allow</code>。
+- <strong>通用</strong>：</p>
+<pre><code class="language-js">c({type:"permission-request", toolUseId, toolName, toolInput, suggestions, commandIntent});
+const P = await new Promise(R =&gt; registerPendingApproval(toolUseID, subChatId, toolName, toolInput, R));
+return P.approved ? {behavior:"allow", updatedInput:P.updatedInput||o, updatedPermissions:P.updatedPermissions}
+                  : {behavior:"deny", message:P.message||"User denied permission"};
+</code></pre>
+<h3 id="35-registerpendingapprovalresolvependingapprovalmainjs42568-42594">3.5 权限回填：<code>registerPendingApproval</code>/<code>resolvePendingApproval</code>（main.js:42568 / 42594）</h3>
+<ul>
+<li><code>pendingToolApprovals: Map&lt;toolUseId,{subChatId,toolName,toolInput,registeredAt,resolve}&gt;</code>。</li>
+<li><code>registerPendingApproval</code> 注册后 <code>taskEventBus.emit("task:needs-confirmation",{subChatId,type})</code>。</li>
+<li>renderer 经 <code>controlsRouter.respondToolApproval</code>/<code>resolvePermission</code>（main.js:86655/86672）调用 <code>resolvePendingApproval(toolUseId,{approved,...})</code> → resolve 上面那个 Promise → <code>recordResolution</code>（学习自动批准？）。支持「复合 id」（<code>a:b:c</code> 取末段匹配）。</li>
+<li><code>cancel</code>（main.js:86639）：<code>getAbortController</code> → <code>interruptMainSessionTurn</code> → <code>abort()</code> + <code>clearPendingApprovals</code>。</li>
+</ul>
+<h2 id="4-sdk-optionsprmainjs84050-84110-claude-agent-sdk">4. SDK options（<code>Pr</code>，main.js:84050-84110）—— 与 Claude Agent SDK 同构</h2>
+<pre><code class="language-js">const Pr = {
+  cwd, systemPrompt: buildMainSessionSystemPrompt({cwd,mode,qoderworkDir,isAwarenessMode,isVmMode,...}),
+  agents: B,                       // subagents（来自 @agent mention + legokit）
+  mcpServers: sanitizeMcpServersForMainSession(Sr),
+  plugins: rr.plugins, skills: rr.skills,
+  additionalDirectories: $e,
+  env: or,                         // buildQoderAgentSdkRuntimeEnv：QODERWORK_SOURCE_CHAT_ID / QODERWORK_CLI_MEMORY_SINK / QODER_BUSINESS_SUB_TASK
+  settings: { outputStyle:"default" },
+  permissionMode: c === "plan" ? "plan" : "default",
+  strictMcpConfig: true,
+  includePartialMessages: true,
+  settingSources: legokit ? [] : ["project","user"],
+  canUseTool: Qt,                  // ← createCanUseToolCallback
+  pathToQoderCLIExecutable: getBundledQoderCliPath(),
+  resolveModel: createMainSessionResolveModel(subChatId, effectiveModelLevel),
+  resolveModelTimeoutMs: 5000,
+  disallowedTools: sr,             // VM 下会把 Bash 排除出禁用名单
+  promptSuggestions: getSetting("promptSuggestionsEnabled")===true || undefined,
+  hooks: qr                        // SessionStart(compact重注awareness) + PreToolUse(Lark拦截) + PostToolUse(DWS改写/VM就绪重试)
+}
+</code></pre>
+<p><strong>hooks 体系</strong>（与 Claude Code 同形：matcher + hooks + hook_event_name + permissionDecision + replacePostToolUseOutput / additionalContext）：
+- <code>SessionStart</code>(matcher <code>compact</code>)：压缩时 <code>rebuildMainSessionAwarenessReminder</code> 重注入 awareness（84+）。
+- <code>PreToolUse</code>(matcher <code>Bash|mcp__qw-builtin__mcp_workspace_bash</code>)：识别 lark-cli 命令 → <code>handleLarkPreToolUse</code> 决定 allow/deny。
+- <code>PostToolUse</code>：DWS 命令拦截改写（版本门/登录门/<code>executeDwsWithPat</code>）；VM 模式下「Workspace still starting」重试上限 3 次注入提示；挂载后注入目录访问 reminder。</p>
+<h2 id="5-mainjs84385">5. 事件消费循环（main.js:84385 起）</h2>
+<pre><code class="language-js">const Vt = ar[Symbol.asyncIterator]();
+const Ir = new SessionEventProcessor({mode,chatId,subChatId,...,emit:ut,observeEvent,onError});
+for (;;) {
+  const xt = await Vt.next();
+  if (xt.done || abort.signal.aborted) break;
+  const Mt = xt.value; logRawClaudeMessage(chatId, Mt);
+  if (Mt.type === "result")          → resolveTurnContextUsageSnapshot → emit context-usage + updateSubChatContextUsageSnapshot
+  if (Mt.type==="system"&amp;&amp;subtype==="compact_boundary") → updateSubChatSessionMemoryPath + taskEventBus.emit("task:compact-boundary")
+  if (Mt.type==="system"&amp;&amp;subtype==="api_retry")         → 忽略(continue)
+  if (Mt.type==="error"||Mt.error)   → auth/unknown 错误处理 + broadcastStreamError + closeMainSessionQueryRuntime
+  if (Mt.type==="user"&amp;&amp;content)     → 图像内容 saveToolResultImage（落盘，剥离 base64）
+  // 其余交给 SessionEventProcessor（class main.js:78377）做投影/分片/工具事件处理
+}
+</code></pre>
+<ul>
+<li>事件类型呈现 Claude/Anthropic 形态：<code>result</code> / <code>system(compact_boundary|api_retry)</code> / <code>error</code> / <code>user</code> / assistant text-delta / reasoning / tool-input-*。</li>
+<li>标题生成：首个 assistant 内容触发 <code>requestMainSessionTitleGeneration</code>（mr/nr 回调，main.js:83780）。</li>
+</ul>
+<h2 id="6-sdk-qodercli-sdkindexprettyjs">6. SDK ↔ qodercli 协议（sdk/index.pretty.js）</h2>
+<h3 id="processtransportsdk140"><code>ProcessTransport</code>（sdk:140+）</h3>
+<ul>
+<li><code>_doInitialize</code>（sdk:167）：<code>buildArgs()</code> → <code>createAuthPayloadFile(auth)</code>（spawn 前把 auth 写临时文件，路径经 env 传入）→ <code>resolveExecutable</code> → <code>spawn(command,args,{cwd,env,stdio:["pipe","pipe",stderr]})</code>。支持外部 <code>spawnQoderCLIProcess</code> 钩子。</li>
+<li>通信：<code>write(line)</code> 自动补 <code>\n</code>（行分隔）；<code>getStdout()</code> 读子进程 stdout。</li>
+<li>退出码 <code>Nt</code>（auth 过期）→ <code>fireAuthExpired</code>。<code>createProcessExitError</code>/<code>createSpawnError</code> 带 <code>stderrTail</code>。</li>
+</ul>
+<h3 id="buildargssdk410-qodercli-claude-code-cli"><code>buildArgs</code>（sdk:410）—— qodercli 命令行（Claude Code CLI 形态）</h3>
+<pre><code>--print
+--output-format stream-json
+--input-format  stream-json
+[--model &lt;m&gt;] [--agent &lt;a&gt;] [--debug]
+[--resume &lt;sid&gt; | --continue]
+[--session-id &lt;sid&gt;]
+[--permission-mode &lt;mode&gt; | --yolo]
+[--dangerously-skip-permissions]
+[--include-partial-messages]
+[--allowed-tools &lt;t&gt;]... [--disallowed-tools &lt;t&gt;]...
+[--tools &lt;csv&gt;|default]
+--permission-prompt-tool stdio      # 当提供 canUseTool 时
+</code></pre>
+<ul>
+<li><code>resolveExecutable</code>（sdk:386）：若 <code>pathToQoderCLIExecutable</code> 是 <code>.js</code>（<code>Lt</code> 判断）则用 <code>node &lt;path&gt;</code>，否则直接执行二进制（实际是 <code>Resources/bin/qodercli</code> Mach-O）。</li>
+<li><code>buildEnv</code>（sdk:392）：复制 env、删 <code>NODE_OPTIONS</code>、写入 auth payload 路径 env、按需写 proxy env。</li>
+</ul>
+<h2 id="7">7. 配置面</h2>
+<ul>
+<li><code>mcpLazyLoad</code>（getSetting）：MCP 工具懒加载开关，默认开。</li>
+<li><code>promptSuggestionsEnabled</code>：是否启用 prompt 建议。</li>
+<li><code>dws:enabled</code> / <code>lark:enabled</code>：连接器关键词嗅探注入开关。</li>
+<li>会话级 <code>modelLevel</code>（sub_chats.modelLevel）→ <code>validateModelLevel</code> → <code>createMainSessionResolveModel</code>。</li>
+<li>环境变量：<code>QODERWORK_SOURCE_CHAT_ID</code>、<code>QODERWORK_CLI_MEMORY_SINK</code>(awareness 记忆下沉)、<code>QODER_BUSINESS_SUB_TASK</code>、<code>QODERWORK_CLI_ENABLE_DEBUG</code>。</li>
+</ul>
+<h2 id="8-drizzleindexc">8. 数据模型（drizzle，index$c 引用）</h2>
+<ul>
+<li><code>chats</code>（index$c.e）：id, name, additionalDirectories, updatedAt, ext(isCronChat/awarenessDisabled)…</li>
+<li><code>sub_chats</code>（index$c.r）：id, chatId, name, sessionId, streamId, modelLevel, ext(contextUsageSnapshot / sessionMemoryPath / workspaceModeId)…</li>
+<li><code>messages</code>：role, parts(JSON), metadata(shouldResume, sdkMessageUuid, feedback)…<blockquote>
+<p>完整表结构见 <code>/tmp/qoderwork-mount/.../Resources/migrations/*.sql</code>（待 06 章汇总）。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="9">9. 待补 / 交叉引用</h2>
+<ul>
+<li><code>SessionEventProcessor</code>（main.js:78377）逐事件处理细节 → 可在 HTML 章节补流程图。</li>
+<li><code>submitMainSessionTurn</code>（main.js:61634）与 runtime pool（create/resume/recreate/close）。</li>
+<li>权限确认 UI 与 autonomyLevel(suggest/supervised/auto) 的具体差异 → 交给 02 章。</li>
+<li>awareness 记忆注入/compact → 交给 03 章。</li>
+</ul></div>
+</section><section class="domain" id="tools">
+<h2 class="domain-title"><span class="dot">🛠️</span>工具系统与权限控制</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>/tmp/qw-pretty/main/main.pretty.js</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 的工具权限分三层：① <strong>agent 工具门</strong> <code>canUseTool</code>（每次工具调用前由 qodercli 经 stdio 反向询问主进程）；② <strong>macOS TCC 系统权限</strong>（node-mac-permissions，7 类）；③ <strong>执行环境隔离</strong>（local 直跑 vs <code>hvkit</code> 微 VM 沙箱）。computer-use（鼠标键盘自动化）是独立可下载连接器。</p>
+<h2 id="1">1. 功能清单</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>入口</th>
+<th>落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工具调用批准/拒绝</td>
+<td><code>agent.respondToolApproval</code>/<code>resolvePermission</code></td>
+<td><code>createCanUseToolCallback</code> main.js:42749</td>
+</tr>
+<tr>
+<td>plan 模式禁编辑</td>
+<td>（自动）</td>
+<td><code>checkPlanModeEditRestriction</code>/<code>isToolBlockedInPlanMode</code></td>
+</tr>
+<tr>
+<td>TCC 权限查询</td>
+<td><code>permissions.check</code>/<code>checkAll</code></td>
+<td><code>checkPermission</code> main.js:119022</td>
+</tr>
+<tr>
+<td>请求权限</td>
+<td><code>permissions.requestAccess</code></td>
+<td>systemPreferences.askForMediaAccess/isTrustedAccessibilityClient</td>
+</tr>
+<tr>
+<td>打开系统设置</td>
+<td><code>permissions.openSystemSettings</code></td>
+<td><code>MAC_PERMISSION_URL_MAP</code> main.js:118975</td>
+</tr>
+<tr>
+<td>Computer Use 连接器</td>
+<td><code>computerUseConnector.*</code></td>
+<td>下载 binary + uiohook-napi</td>
+</tr>
+<tr>
+<td>文件读写/搜索/预览</td>
+<td><code>files.*</code></td>
+<td><code>fileService</code> main.js:115501</td>
+</tr>
+<tr>
+<td>外部打开/链接预览</td>
+<td><code>external.*</code></td>
+<td>main.js:114754</td>
+</tr>
+<tr>
+<td>VM 沙箱</td>
+<td><code>download.*Vm*</code> / <code>settings.getVmBackend</code></td>
+<td><code>hvkit</code> (mac) / Hyper-V (win)</td>
+</tr>
+<tr>
+<td>Apple/Microsoft 连接器</td>
+<td><code>appleConnectors.*</code>/<code>microsoftConnector.*</code></td>
+<td>ms-365-mcp-server</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2">2. 工具权限门时序图</h2>
+<pre class="mermaid">sequenceDiagram
+  participant CLI as qodercli
+  participant CB as canUseTool(main.js:42749)
+  participant Bus as taskEventBus
+  participant R as Renderer
+  participant Ctl as controlsRouter
+  CLI-&gt;&gt;CB: 请求执行工具(toolName,input)
+  alt plan 模式 &amp; 编辑类工具
+    CB--&gt;&gt;CLI: {behavior:"deny"}
+  else 特殊 bash(dws/lark/aone/a1/ncs)
+    CB--&gt;&gt;CLI: {behavior:"allow"}
+  else 需要确认
+    CB-&gt;&gt;R: emit permission-request(toolUseId,toolName,input,commandIntent)
+    CB-&gt;&gt;Bus: registerPendingApproval → emit task:needs-confirmation
+    R-&gt;&gt;Ctl: respondToolApproval({toolUseId,approved,updatedInput})
+    Ctl-&gt;&gt;CB: resolvePendingApproval → Promise.resolve
+    CB--&gt;&gt;CLI: approved?{allow,updatedInput}:{deny,message}
+  end
+</pre>
+<h2 id="3">3. 函数级证据</h2>
+<h3 id="31-createcanusetoolcallbackmainjs42749">3.1 <code>createCanUseToolCallback</code>（main.js:42749）</h3>
+<p>分支顺序：plan 模式（<code>checkPlanModeEditRestriction</code> / <code>isToolBlockedInPlanMode</code>）→ <code>AskUserQuestion</code>（emit ask-user-question 等回填）→ <code>toolConfirmationRegistry.resolveWithKey(toolName)</code> 自定义确认 handler → 特殊 bash 工具 <code>dws_bash/lark_cli_bash/aone_kit_bash/a1_bash/ncs_bash</code> 直接 allow → 通用流程 emit <code>permission-request</code> + <code>registerPendingApproval</code> 挂起 Promise。返回值形如 <code>{behavior:"allow",updatedInput,updatedPermissions}</code> 或 <code>{behavior:"deny",message}</code>，由 qodercli 决定是否执行。<code>updatedPermissions</code> 支持「记住此类」的持久授权。</p>
+<h3 id="32-tcc-mainjs119022-118954">3.2 TCC 权限（main.js:119022 / 118954）</h3>
+<ul>
+<li><code>permissionTypeSchema = ["fullDiskAccess","screenCapture","accessibility","automation","notification","location","microphone"]</code>。</li>
+<li>各 check 实现：</li>
+<li><code>checkFullDiskAccess</code>：试读 <code>~/Library/Mail|Messages|Safari</code>（access 成功即视为有 FDA）。</li>
+<li><code>checkScreenCapture</code>：<code>macPermissions.getAuthStatus("screen")</code>，未决时 <code>askForScreenCaptureAccess(false)</code>。</li>
+<li><code>checkAccessibility</code>：<code>systemPreferences.isTrustedAccessibilityClient(false)</code>。</li>
+<li><code>checkAutomation</code>：跑 <code>osascript</code> JS 访问 System Events，靠错误码 <code>-1743/not authorized</code> 判定。</li>
+<li><code>checkMicrophone</code>：<code>getMediaAccessStatus("microphone")==="granted"</code>。</li>
+<li><code>openSystemSettings</code> 用 <code>x-apple.systempreferences:</code> URL scheme 直达对应隐私面板（<code>MAC_PERMISSION_URL_MAP</code>）。</li>
+<li>Windows 仅 microphone（<code>ms-settings:privacy-microphone</code>），其余直接 <code>granted:true</code>。</li>
+</ul>
+<h3 id="33-computer-use-mainjs86853">3.3 Computer Use 连接器（main.js:86853+）</h3>
+<ul>
+<li>通过 <code>uiohook-napi</code>（全局键鼠 hook，bundle 顶部 line 84 引入）+ <code>@nut-tree-fork/nut-js</code>（鼠标键盘控制）。</li>
+<li>二进制按需下载：<code>MAC_MANIFEST_URL = https://download.qoder.com/qoder-work/binary/computer-use/latest/mac.json</code>，setting key <code>computerUseEnabled</code> / <code>computerUseWindowsInstalled</code>。</li>
+<li>运行时有醒目通知 + overlay（i18n key <code>computerUse.notification.title</code> "正在控制电脑"、<code>computerUse.overlay.usingComputer"</code>），用户可一键停止。</li>
+<li>agent loop 入口 <code>submitMessage</code> 会先 <code>resetComputerUseSession()</code>（每轮重置控制会话），<code>computerUseConnectorRouter</code>（main.js:118935）提供 getStatus/enable/install/disable。</li>
+</ul>
+<h3 id="34-mainjs115501-fileservice">3.4 文件工具（main.js:115501，委托 <code>fileService</code>）</h3>
+<p><code>search</code>（项目内文件检索，带 cache + <code>clearCache</code>）、<code>checkPathsExist</code>、<code>readFile</code>/<code>writeFile</code>、<code>writePastedText</code>、<code>selectFilesAndFolders</code>（系统对话框）、<code>showSaveDialog</code>、<code>readFolderContents(maxDepth)</code>、<code>extractPptxPreview</code>/<code>extractHtmlPreview</code>/<code>extractPdfPreview</code>（用 pdf-lib/pptxgenjs/sharp 生成预览）。</p>
+<h3 id="35-externalrouter-mainjs114754">3.5 外部交互（externalRouter main.js:114754）</h3>
+<p><code>openInFinder</code>、<code>openFileInEditor</code>、<code>openExternal</code>、<code>getLocalDevTools</code>/<code>openLocalDevTool</code>、<code>getLinkPreview</code>（抓 OG 元数据）、<code>getFaviconUrl</code>/<code>getGoogleFaviconUrl</code>、<code>openWithDefault</code>/<code>getAppsForFile</code>/<code>openWithApp</code>（调 <code>bin/open-with-helper</code>）。</p>
+<h2 id="4-vm">4. 执行环境隔离：VM 沙箱</h2>
+<pre class="mermaid">flowchart TD
+  A[executeTask] --&gt; B{isUsingVm 且 !forceNoVm?}
+  B -- 否 --&gt; L[executionEnv=local 直接在 cwd 跑]
+  B -- 是 --&gt; V[executionEnv=vm]
+  V --&gt; M[ensureVmMounts cwd]
+  V --&gt; H[startHvkit: node-pty spawn hvkit]
+  H --&gt; S1[--mcp-socket /tmp/qoderwork-mcp.sock]
+  H --&gt; S2[--exec-socket /tmp/qoderwork-exec.sock]
+  H --&gt; HC[startHealthCheck + broadcastVmStatus]
+  V --&gt; R[工具走 mcp__qw-builtin__mcp_workspace_bash]
+</pre>
+<ul>
+<li><code>isUsingVm</code>（main.js:43505）= <code>getSettings().usingVM===true</code>。</li>
+<li><code>startHvkitMac</code>（main.js:70490）：<code>getHvkitPath()</code> → <code>chmod 0755</code> → <code>node-pty.spawn(hvkit, ["--qodercli",version,"--userdir",home,"--mcp-socket",MCP_IPC_PATH,"--exec-socket",VM_EXEC_SOCKET_PATH,"--product","qoderwork",...])</code>，env 注入 <code>QODER_ENABLE_VM_NEW_FEATURE=true</code>。解析 hvkit stdout 事件（<code>tryParseHvkitEvent</code>）驱动 boot 状态机。</li>
+<li>socket：<code>MCP_IPC_PATH=/tmp/qoderwork-mcp.sock</code>、<code>VM_EXEC_SOCKET_PATH=/tmp/qoderwork-exec.sock</code>（Windows 用命名管道）。</li>
+<li>Windows：<code>startHvkitWin</code> 依赖 Hyper-V（<code>isHyperVEnabled</code>）。</li>
+<li>VM 模式下 agent loop 强制把 <code>Bash</code> 移出 disallowedTools（让 bash 走 VM 内 <code>mcp_workspace_bash</code>），并有 PostToolUse hook 处理「Workspace still starting」重试上限。</li>
+<li><code>downloadRouter</code> 暴露 VM 生命周期：<code>getVmUpdateState/triggerVmUpdate/isVmReady/startVirtualHost/isVirtualHostReady/getVmInfo/checkVmHealth</code>。</li>
+<li>内置 skill <code>vm-error-recovery</code>（Resources/skills/）用于 agent 自助恢复 VM 故障。</li>
+</ul>
+<h2 id="5">5. 配置面</h2>
+<ul>
+<li><code>settings.usingVM</code>（VM 开关）、<code>getVmBackend</code>/<code>setVmBackend</code>、<code>getVmTestEnv</code>/<code>setVmTestEnv</code>、<code>enableVmPrerequisites</code>。</li>
+<li><code>computerUseEnabled</code>、<code>computerUseWindowsInstalled</code>。</li>
+<li>工具自治：<code>autonomyLevel</code>（suggest/supervised/auto）影响是否每次都弹确认；<code>updatedPermissions</code> 持久化「总是允许」。</li>
+<li><code>SKIP_MODEL_VALIDATION</code> 环境变量跳过模型校验。</li>
+</ul>
+<h2 id="6">6. 数据模型</h2>
+<ul>
+<li>权限确认是内存态（<code>pendingToolApprovals</code> Map），不落库；持久授权经 SDK <code>updatedPermissions</code> 写入 qodercli settings（project/user settingSources）。</li>
+<li>VM 状态经 <code>broadcastVmStatus</code> 推 renderer，不落 SQLite。</li>
+</ul></div>
+</section><section class="domain" id="awareness">
+<h2 class="domain-title"><span class="dot">🧠</span>Awareness / 记忆 / 人格</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>、<code>chunks/memory-reflection-DaXqRn3i.pretty.js</code>、<code>chunks/index-CrSi6RWY.pretty.js</code>，及 <code>Resources/awareness-templates/</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>Awareness（"觉知"模式）是 QoderWork 让 agent 跨会话持久化「人格 + 工作手册 + 记忆」的机制，对标 Claude Code 的 CLAUDE.md 但更体系化：
+- <strong>5 个上下文文件</strong>：<code>SOUL.md</code>（人格）/<code>AGENTS.md</code>（工作手册）/<code>USER.md</code>（用户偏好）/<code>HEARTBEAT.md</code>（周期任务）/<code>MEMORY.md</code>（长期记忆），会话开始时作为 <code>&lt;system-reminder&gt;</code> 注入。
+- <strong>记忆双层</strong>：<code>MEMORY.md</code>（精炼、每次注入、size 敏感）+ <code>memory/YYYY-MM-DD.md</code>（原始日志、不注入、靠 <code>memory_search</code>/<code>memory_get</code> 按需检索）。
+- <strong>记忆索引</strong>：SQLite <strong>FTS5 + trigram 分词</strong>（非向量），分块 400 token / 重叠 80。
+- <strong>记忆反思（reflection）</strong>：后台调度的 agent 任务，定期重整 <code>MEMORY.md</code>/<code>USER.md</code>。
+- <strong>memory sink</strong>：awareness 模式下给 qodercli 注入 <code>QODERWORK_CLI_MEMORY_SINK=1</code>，让 CLI 侧把记忆写回。</p>
+<h2 id="1">1. 功能清单</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>入口 procedure (main.js:120536+)</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>读 bootstrap 文件</td>
+<td><code>awareness.getBootstrapFiles</code></td>
+<td>SOUL/AGENTS（排除 HEARTBEAT）</td>
+</tr>
+<tr>
+<td>读人格预设</td>
+<td><code>awareness.getSoulPresets</code></td>
+<td>decisive/efficient/supportive/thoughtful</td>
+</tr>
+<tr>
+<td>列记忆文件</td>
+<td><code>awareness.getMemoryFiles</code></td>
+<td>MEMORY.md + memory/*.md</td>
+</tr>
+<tr>
+<td>读/写文件</td>
+<td><code>awareness.readFile</code>/<code>writeFile</code></td>
+<td>上限 100KB（AWARENESS_FILE_MAX_CONTENT_BYTES）</td>
+</tr>
+<tr>
+<td>删 bootstrap</td>
+<td><code>awareness.deleteBootstrapFile</code></td>
+<td>仅 SOUL/AGENTS/HEARTBEAT</td>
+</tr>
+<tr>
+<td>索引状态</td>
+<td><code>awareness.getIndexStatus</code></td>
+<td>files 计数</td>
+</tr>
+<tr>
+<td>重建索引</td>
+<td><code>awareness.rebuildIndex</code></td>
+<td>重扫 + FTS5 重建</td>
+</tr>
+<tr>
+<td>初始化文件</td>
+<td><code>awareness.initFiles</code>/<code>resetBootstrapFiles</code></td>
+<td>从模板拷贝</td>
+</tr>
+<tr>
+<td>清空记忆</td>
+<td><code>awareness.clearMemory</code></td>
+<td></td>
+</tr>
+<tr>
+<td>导出</td>
+<td><code>awareness.exportZip</code></td>
+<td>打包 awareness 目录</td>
+</tr>
+<tr>
+<td>手动触发反思</td>
+<td><code>awareness.triggerReflection</code> (main.js:120961)</td>
+<td>调 MemoryReflectionTask</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-system-prompt-mainjs79462-79500">2. 上下文注入与优先级（system prompt 实证，main.js:79462-79500）</h2>
+<p>agent loop 中 <code>isAwarenessMode</code> 为真时，主进程把 5 个文件作为 <code>&lt;system-reminder&gt;</code> 注入，system prompt 明确：
+- <strong>优先级</strong>：<code>SOUL.md</code>(语气) &gt; <code>AGENTS.md</code>(技术/流程) &gt; <code>USER.md</code>(个人偏好) &gt; <code>HEARTBEAT.md</code>(周期任务) &gt; <code>MEMORY.md</code>(历史参考)；冲突时高优先级胜。
+- <code>AGENTS.md</code> 视为<strong>权威</strong>（等同用户指令）；用户显式请求与约定冲突时，遵用户但注明偏离。
+- <strong>CONTEXT FRESHNESS</strong>：会话内文件被改→<code>&lt;system-reminder&gt;</code> 发变更通知（带片段），主进程靠技能/文件快照 diff 检测（见 01 章 executeTask 第 4 步）。
+- <code>memory/</code> 子目录<strong>不注入</strong>，仅 <code>memory_search</code>/<code>memory_get</code> 按需取——这是控制 token 的关键设计。</p>
+<pre class="mermaid">flowchart LR
+  subgraph 会话开始
+    A[isAwarenessMode?] --&gt;|是| B[加载 5 文件]
+    B --&gt; C[注入 system-reminder]
+  end
+  subgraph 运行中
+    D[文件被改] --&gt; E[change notification system-reminder]
+    F[compact 压缩] --&gt; G[SessionStart hook: rebuildMainSessionAwarenessReminder 重注入]
+  end
+  subgraph 记忆检索
+    H[agent 调 memory_search] --&gt; I[FTS5 trigram 查 chunks_fts]
+    I --&gt; J[返回命中片段]
+  end
+  C --&gt; K[qodercli 会话]
+  G --&gt; K
+  J --&gt; K
+</pre>
+<h2 id="3-mainjs60110-60210">3. 记忆索引实现（main.js:60110-60210）</h2>
+<ul>
+<li>每个 agent 一个独立 SQLite：<code>getAwarenessDir(agentName)/&lt;DB_FILENAME&gt;</code>，<code>journal_mode=WAL</code>，<code>busy_timeout=5000</code>。</li>
+<li>表结构（<code>initSchema</code>）：<code>meta(key,value)</code> / <code>files(path,hash,mtime,size)</code> / <code>chunks(id,path,start_line,end_line,hash,text,updated_at)</code> + <code>idx_chunks_path</code>。</li>
+<li>全文检索（<code>ensureFtsTable</code>）：虚表 <code>chunks_fts USING fts5(text, id/path/start_line/end_line UNINDEXED, tokenize='trigram case_sensitive 0')</code>。</li>
+<li>配置：<code>CHUNK_TOKENS=400</code>、<code>CHUNK_OVERLAP=80</code>、<code>FTS_TOKENIZER='trigram'</code>、带 <code>SCHEMA_VERSION</code>（变更触发重建）。</li>
+<li>另有会话消息全文检索 <code>messages_fts</code>（main.js:2599，同样 fts5 trigram），用于 <code>messages.searchInSubChat</code>。</li>
+<li><strong>结论：记忆检索是关键词/子串级 FTS，不是语义 embedding</strong>——trigram 对中英文混排与代码标识符友好。</li>
+</ul>
+<h2 id="4-workerchunksmemory-reflection-daxqrn3iprettyjs">4. 记忆反思 worker（chunks/memory-reflection-DaXqRn3i.pretty.js）</h2>
+<ul>
+<li>反思 worker 是一个<strong>独立 agent 任务</strong>，prompt（该文件 ge() L69）："You are the Memory Reflection worker. Your only job is to reorganize MEMORY.md and USER.md by calling the QoderWork memory tool."</li>
+<li>HARD RULES（实证）：</li>
+<li><code>MEMORY.md</code> = 项目/环境/决策/教训；<code>USER.md</code> = 用户个人事实。</li>
+<li>跨文件移动（USER↔MEMORY）必须「先加到目标再从源删」，禁止重复；每次 session 跨文件移动<strong>上限受限</strong>（<code>fe</code> 个，降风险）。</li>
+<li>安全：写前备份 <code>.MEMORY.md.reflection-bak</code> / <code>.USER.md.reflection-bak</code>，失败可 restore（<code>j</code>/<code>B</code> 函数 L238/256）。</li>
+<li>触发：<code>reflectionScheduler.register(new MemoryReflectionTask)</code> + <code>.start()</code>（来自 <code>chunks/index-CrSi6RWY.js</code>，main.js:125802），由启动延迟任务 <code>initReflection</code>（<code>scheduleDelayedTasks</code> 中 <code>DELAYS.REFLECTION</code>）拉起；<code>awareness.triggerReflection</code> 可手动触发。完成 emit <code>awareness_reflection_completed</code>，统计 <code>memory_saved</code>/<code>skill_created</code>/<code>reflection_memory_ok</code> 计数。</li>
+</ul>
+<pre class="mermaid">sequenceDiagram
+  participant Sch as reflectionScheduler
+  participant Task as MemoryReflectionTask(agent)
+  participant FS as MEMORY.md/USER.md
+  Sch-&gt;&gt;Sch: 启动延迟任务 initReflection(awareness开启才注册)
+  Sch-&gt;&gt;Task: 到点触发(或 awareness.triggerReflection 手动)
+  Task-&gt;&gt;FS: 备份 .reflection-bak
+  Task-&gt;&gt;Task: agent 读取索引条目 → 重组/去重/跨文件搬运(限量)
+  Task-&gt;&gt;FS: 经 memory 工具写回
+  alt 失败
+    Task-&gt;&gt;FS: restore from .reflection-bak
+  end
+  Task--&gt;&gt;Sch: emit awareness_reflection_completed{memory_saved,...}
+</pre>
+<h2 id="5-heartbeat">5. HEARTBEAT（周期任务）</h2>
+<ul>
+<li><code>HEARTBEAT.md</code>（模板默认空，仅注释）：列出 agent 在收到「heartbeat poll」时要周期检查的事（如未读邮件/日历/<code>git status</code>）。</li>
+<li>system prompt 规则（main.js:79487）：收到 heartbeat poll → 读并执行 HEARTBEAT.md；若空或仅注释 → 回 <code>HEARTBEAT_OK</code>。</li>
+<li>heartbeat poll 的发起与 cron（见后续 IM/调度章）联动：cron 链接的 chat（<code>isChatCronLinked</code>）在 agent loop 中会跳过 awareness（01 章 <code>Pt</code>），定时任务经 cronRouter 注入 prompt。</li>
+</ul>
+<h2 id="6-resourcesawareness-templatessoul-presets">6. 人格预设（Resources/awareness-templates/soul-presets/）</h2>
+<p>4 个内置 SOUL 预设（中英双份，含 <code>zh/</code>）：<code>decisive.md</code>（果断）、<code>efficient.md</code>（极简直给）、<code>supportive.md</code>（支持型）、<code>thoughtful.md</code>（深思型）。默认 SOUL.md 强调"genuinely helpful / think independently / be resourceful / earn trust"，并设边界"Private things stay private""When in doubt, ask before acting externally"。<code>getSoulPresets</code> 供 UI 选择。</p>
+<h2 id="7">7. 配置面</h2>
+<ul>
+<li><code>awareness.enabled</code>（默认 <strong>false</strong>）、<code>awareness.memory_enabled</code>（默认 true）、<code>awareness.skill_evolution_enabled</code>（默认 true）、<code>awareness.settings_visible</code>（默认 false）。存于 config（<code>AWARENESS_DEFAULTS</code> main.js:3606），并有远端开关 <code>isAwarenessRemoteAllowed</code>（服务端可关闭某子能力）+ 本地快照持久化 <code>configService.awarenessGateSnapshot</code>。</li>
+<li><code>isAwarenessEffectivelyEnabled()</code>（main.js:3805）= <code>isAwarenessEnabled()</code>；<code>isMemoryEffectivelyEnabled</code> 需同时本地开 + 远端允许。</li>
+<li>文件大小：<code>AWARENESS_FILE_MAX_CONTENT_BYTES=100KB</code>（main.js:59368）。</li>
+<li>awareness 目录：<code>getAwarenessDir</code>（main.js:59400，位于 <code>~/&lt;QODERWORK_DIR&gt;/</code> 下）。</li>
+<li>环境变量：agent loop 注入 <code>QODERWORK_CLI_MEMORY_SINK</code>（awareness 开→"1"）。</li>
+</ul>
+<h2 id="8">8. 数据模型</h2>
+<ul>
+<li>配置：<code>settings</code>/<code>config</code>(index$c.a) 表存 awareness gate 快照。</li>
+<li>记忆索引：每 agent 独立 SQLite（meta/files/chunks/chunks_fts），位于 awareness 目录，<strong>与主聊天库分离</strong>。</li>
+<li>记忆内容：纯 markdown 文件（MEMORY.md/USER.md/memory/*.md），非数据库。</li>
+<li><code>sub_chats.ext.sessionMemoryPath</code>：compact 时 CLI 产出的会话记忆路径（01 章）。</li>
+</ul></div>
+</section><section class="domain" id="skills">
+<h2 class="domain-title"><span class="dot">🧩</span>Skills / Plugins / Legokits</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>、<code>chunks/legokit-discovery-*.js</code>、<code>Resources/{skills,skills-market,commands,plugins-example,legokits}</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 把"能力扩展"分成 4 个层级，从轻到重：
+1. <strong>Command</strong>（<code>/xxx</code>）：纯 prompt 片段，最轻。
+2. <strong>Skill</strong>（SKILL.md + 资源）：模型按 description 触发的工序手册，对标 Claude Code Skills。
+3. <strong>Plugin</strong>（<code>.qoder-plugin/plugin.json</code>）：打包多个 skills + commands + <code>.mcp.json</code> + connectors 的行业方案包（如「投研分析/企业法务」）。
+4. <strong>Legokit</strong>（最重）：带<strong>独立 MCP server + 隔离子进程运行时 + 工作区模式 + 执行约束</strong>的"模式应用"（ai-slides / canvas / writing）。
+5. <strong>Agent</strong>（subagent）：<code>~/&lt;qoderwork&gt;/agents/*.md</code>，经 <code>@agent:</code> mention 注入。</p>
+<p>它们最终都汇入 agent loop 的 SDK options（01 章 <code>Pr</code>）：skills/plugins 经 <code>buildMainSessionPluginRuntimeConfig</code>，agents 经 <code>buildAgentsOption</code>，legokit 经 <code>legokitRegistry</code> 改写整个执行上下文。</p>
+<h2 id="1">1. 功能/路由清单</h2>
+<table>
+<thead>
+<tr>
+<th>域</th>
+<th>router (main.js)</th>
+<th>代表 procedure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skills</td>
+<td><code>skillsRouter</code> :65502 (31)</td>
+<td>list/listBuiltin/listMarket/listMarketPaginated/installMarket/updateMarket/uninstallMarket/enable/disable/selectSkillZip/getMarketSkillDetail</td>
+</tr>
+<tr>
+<td>Commands</td>
+<td><code>commandsRouter</code> :115924 (7)</td>
+<td>list/listBuiltin/enableBuiltin/disableBuiltin/deleteUserCommand/importCommand/getContent</td>
+</tr>
+<tr>
+<td>Plugins</td>
+<td><code>pluginsRouter</code> :116662 (24)</td>
+<td>listMarket/listInstalled/installMarket/updateMarket/forkPlugin/uninstall/listPluginSkills/listPluginCommands/getDetail/getFileContent</td>
+</tr>
+<tr>
+<td>Legokits</td>
+<td><code>legokitRouter</code> :121441 (19)</td>
+<td>getAll/getEnabled/getModeAvailability/getModeEnabledMap/getActiveLegokitsForMode/setEnabled/setModeLegokitEnabled/getDownloadState/onLegokitChange</td>
+</tr>
+<tr>
+<td>Slides 模板</td>
+<td><code>slidesTemplatesRouter</code> :123069 (12)</td>
+<td>list/getDetail/export/import/commitDraft/discardDraft</td>
+</tr>
+<tr>
+<td>Agents</td>
+<td><code>agentsRouter</code> :115688 (6)</td>
+<td>list/listEnabled/get/create/update/delete</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-agent-loop">2. 注入到 agent loop 的路径</h2>
+<pre class="mermaid">flowchart TD
+  subgraph 用户消息
+    M["@skill:x @agent:y @plugin:z 文本"]
+  end
+  M --&gt; PM[parseMainSessionMentions main.js:78870]
+  PM --&gt; SK[skillMentions] --&gt; RP[buildMainSessionPluginRuntimeConfig:61988]
+  PM --&gt; AG[agentMentions] --&gt; BA[buildAgentsOption]
+  PM --&gt; PL[pluginMentions] --&gt; PCtx[pluginService.buildPluginMentionContext]
+  RP --&gt; SDK[SDK options: skills + plugins]
+  BA --&gt; SDK2[SDK options: agents]
+  subgraph Legokit
+    LK[getChatActiveLegokitId] --&gt; REG[legokitRegistry.get]
+    REG --&gt; EC[executionConstraints: forceNoVm/disallowedTools/exposeGlobalMcpTools]
+    REG --&gt; SP[loadLegokitPackageContents → systemPrompt+agents]
+    REG --&gt; RT[ensureActiveLegokitMcpRuntime 隔离子进程]
+  end
+  EC --&gt; SDK
+  SP --&gt; SDK
+  RT --&gt; SDK
+  SDK --&gt; CLI[qodercli]
+</pre>
+<ul>
+<li><strong>Skill mention</strong> 强约束注入（01 章实证 prompt）："This request must be fulfilled using the \"X\" skill. First read its SKILL.md... Do NOT claim this capability is unavailable."</li>
+<li><strong>Tool mention</strong>："Use the X tool for this request."</li>
+<li>skills/plugins 默认全量可用（<code>DEFAULT_SKILLS_OPTION</code>），plugins 以 <code>{type:"local",path}</code> 数组传 SDK，带去重+排序+签名（<code>createMainSessionPluginSignature</code>，变更触发 runtime 重建）。</li>
+</ul>
+<h2 id="3-skill-resourcesskillsdocxskillmd">3. Skill 结构（实证 Resources/skills/docx/SKILL.md）</h2>
+<ul>
+<li>frontmatter：<code>name / version / description / description_zh / license</code>。<code>description</code> 写满触发条件与「Do NOT use for...」反例，供模型路由。</li>
+<li>正文：Task Decision Matrix + 操作步骤。内置 skills：<code>create-skill/docx/pdf/pptx/xlsx/find-skills/install-skill-dependency/plugin-creator/qoderwork-guidance/vm-error-recovery</code>。</li>
+<li>skills-market/：远程市场技能（<code>baoyu-*</code>、<code>content-research-writer</code>、<code>cloudflare-deploy</code> 等），元数据 <code>skill-market-data.json</code>。</li>
+<li>用户 skills 目录：<code>getUserSkillsDir() = ~/&lt;qoderwork&gt;/skills</code>（main.js:125850）。</li>
+</ul>
+<h2 id="4-plugin-plugins-example">4. Plugin 结构（实证 plugins-example/投研分析/）</h2>
+<pre><code>投研分析/
+  .qoder-plugin/plugin.json     # 清单
+  .mcp.json                     # 该插件要起的 MCP server
+  CONNECTORS.md                 # 依赖的连接器说明
+  README.md / README_EN.md
+  skills/                       # 读年报/调研纪要/可比公司分析/深度报告/行业研究/业绩快评/晨会纪要...
+</code></pre>
+<ul>
+<li>11 个内置行业插件包：企业财税/市场营销/投研分析/财富管理/合同管理/产品管理/咨询交付/投行业务/股权投资/产品设计/企业法务。</li>
+<li><code>pluginsRouter.forkPlugin</code> 允许用户 fork 市场插件再改；<code>listPluginSkills</code>/<code>listPluginCommands</code> 拆解插件内容；市场数据 <code>plugin-market-data.json</code>。</li>
+</ul>
+<h2 id="5-legokit">5. Legokit —— 最重的差异化能力</h2>
+<h3 id="51-legokitsai-slidescanvaswriting">5.1 结构（实证 legokits/{ai-slides,canvas,writing}/）</h3>
+<ul>
+<li><code>SYSTEM.md</code>（该模式的系统提示）、<code>&lt;name&gt;-mcp.cjs</code>（独立 MCP server）、<code>agents/</code>（专用 subagents）、<code>layouts/</code>/<code>templates/</code>/<code>resources/</code>（ai-slides、canvas 还带 <code>vite-server-worker.cjs</code> 做实时预览）。</li>
+<li>canvas 甚至自带 <code>skills/</code> 与 <code>design-systems/protocols/</code>。</li>
+</ul>
+<h3 id="52-legokitregistry-mainjs80007">5.2 注册与解析（<code>LegokitRegistry</code> main.js:80007）</h3>
+<ul>
+<li><code>init()</code> 注册内置（<code>HOST_LEGOKIT_PACKAGES</code>）；<code>registerDiscoveredManifest</code> 支持发现式（<code>source:"discovered"</code>，见 <code>chunks/legokit-discovery-*.js</code>）。</li>
+<li>工作区模式：<code>manifest.defaultWorkspaceModeIds</code>（如 general/slides/canvas）、<code>getModeAllowedLegokitIds(mode)</code>、<code>getActiveLegokitsForMode</code>、<code>isLegokitAllowedInMode</code>。</li>
+<li><code>getAgentRuntimeLegokitForMode(mode)</code>：判定该模式下哪个 legokit 接管 agent 运行时（<code>isAgentRuntimeLegokit</code> = 有非 ui_ 的 mcpServerName 或有 executionConstraints）。</li>
+<li><code>executionConstraints</code>：<code>forceNoVm</code>（禁 VM）、<code>disallowedTools</code>、<code>exposeGlobalMcpTools</code>（是否暴露全局 MCP 工具）——agent loop 据此改写工具集与执行环境（01 章 §3.3 步骤 1）。</li>
+</ul>
+<h3 id="53-legokitisolatedruntimerunner-mainjs72321">5.3 隔离运行时（<code>LegokitIsolatedRuntimeRunner</code> main.js:72321）</h3>
+<pre><code class="language-js">async start() {
+  if (!this.config.mcp) throw new Error(`LegoKit ${this.config.legokitId} has no MCP runtime`);
+  const child = path.join(__dirname, "legokit-isolated-runtime-child.js");
+  this.process = childProcess.spawn(process.execPath, [child, JSON.stringify({
+    bundlePath: resolveBundlePath(this.config), userDataPath: app.getPath("userData"), ...
+  })], { env: { ...this.buildAllowedEnv() } });   // 受限白名单 env
+}
+</code></pre>
+<ul>
+<li>legokit 的 MCP server 跑在<strong>独立 Node 子进程</strong>，env 经 <code>buildAllowedEnv()</code> 白名单过滤，与主进程隔离（安全 + 崩溃隔离）。</li>
+<li>另有 <code>LegokitSdkHookRegistry</code>（72321 前，给 legokit 绑 SDK hooks）、<code>LegokitMcpAdaptor</code>（74957，把 legokit MCP 适配进主会话）。</li>
+</ul>
+<h3 id="54-slides-slidestemplatesrouter-mainjs123069">5.4 Slides 模板系统（<code>slidesTemplatesRouter</code> main.js:123069）</h3>
+<p>ai-slides legokit 的配套：模板 CRUD（list/getDetail/rename/delete）、导入导出（export/import）、参考 HTML 读取（readReferenceHtml/readDraftReferenceHtml）、草稿提交/丢弃（commitDraft/discardDraft）。</p>
+<h2 id="6-agentssubagent">6. Agents（subagent）</h2>
+<ul>
+<li><code>agentsRouter</code>（main.js:115688）：CRUD，存于 <code>getQoderworkPath("agents")</code> 下的 <code>.md</code> 文件。</li>
+<li>agent loop 中 <code>buildAgentsOption(agentMentions, cwd)</code> 把 <code>@agent:</code> 命中的 + legokit 自带的 agents 合并进 SDK <code>agents</code> 选项，由 qodercli 作为 subagent 调度。</li>
+</ul>
+<h2 id="7">7. 配置面</h2>
+<ul>
+<li>skill 启停：用户级 enabled 列表；<code>disabledUserSkillFolders</code>（submitMessage 入参可临时禁用）。</li>
+<li>legokit：<code>setEnabled</code> / <code>setModeLegokitEnabled(mode,id,bool)</code> / <code>getModeEnabledMap</code>；下载态 <code>getDownloadState</code>/<code>isReady</code>。</li>
+<li><code>DEFAULT_SKILLS_OPTION</code>：默认技能暴露策略。</li>
+<li>命令：内置命令可 <code>enableBuiltin</code>/<code>disableBuiltin</code>；用户命令 <code>importCommand</code>/<code>deleteUserCommand</code>，模板 <code>commands/create-command.md</code>。</li>
+</ul>
+<h2 id="8">8. 数据模型</h2>
+<ul>
+<li>skills/commands/plugins/agents 主要是<strong>文件系统</strong>（<code>~/&lt;qoderwork&gt;/{skills,commands,agents}</code> + 插件目录），非 SQLite。</li>
+<li>市场目录缓存：<code>plugin-market-data.json</code> / <code>skill-market-data.json</code>（Resources 内置 + 远端刷新 <code>initMcpMarketCatalog</code>）。</li>
+<li>legokit 启用状态：config 表（<code>legokitRegistry</code> 持久化 enabled map）。</li>
+</ul></div>
+</section><section class="domain" id="mcp">
+<h2 class="domain-title"><span class="dot">🔌</span>MCP 集成</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>（McpClientPool :40633、mcpRouter :89171）与内置 server chunks <code>chunks/server-*.pretty.js</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 用<strong>官方 <code>@modelcontextprotocol/sdk</code></strong> 作为 MCP 客户端，统一管理三类 server：① 内置连接器（Apple 生态 + 浏览器 + 企业微信，进程内/适配器）；② 用户自定义 server（stdio / SSE / StreamableHTTP）；③ 市场 server。核心是单例 <code>McpClientPool</code>（连接池 + 健康度 + OAuth + 懒加载），工具最终经 SDK options 的 <code>mcpServers</code> 注入 qodercli。</p>
+<h2 id="1-mainjs64-85-41667-41681">1. 传输与依赖（main.js:64-85, 41667-41681）</h2>
+<ul>
+<li><code>@modelcontextprotocol/sdk/client</code>：<code>StdioClientTransport</code>（本地子进程）、<code>SSEClientTransport</code>（<code>new URL(url)</code>）、<code>StreamableHTTPClientTransport</code>（HTTP 流）。</li>
+<li><code>@modelcontextprotocol/sdk/server</code> + <code>inMemory.js</code>：内置 server 走进程内 InMemory transport。</li>
+<li><code>@modelcontextprotocol/ext-apps</code>（package.json 依赖）：MCP-UI 应用扩展（<code>getToolsWithUi</code>）。</li>
+</ul>
+<h2 id="2-mcprouter-mainjs8917125-procedure">2. mcpRouter 功能清单（main.js:89171，25 procedure）</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>procedure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>配置</td>
+<td>getAllMcpConfig / importMcpConfig（粘 JSON 导入）/ updateCustomMcpServer / deleteCustomMcpServer / toggleCustomMcpServer / applyGuidedSetupConfig</td>
+</tr>
+<tr>
+<td>内置</td>
+<td>getBuiltinMcpServers / enableBuiltinMcpServer / disableBuiltinMcpServer / saveBuiltinMcpServerParameters</td>
+</tr>
+<tr>
+<td>鉴权</td>
+<td>startMcpAdaptorAuth（OAuth）/ clearMcpAuthToken / getMcpAdaptorUrl</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>mcpStatusSubscription（tRPC subscription/observable）/ getMcpStatusSnapshot / refreshMcpStatus / getMcpServerLogPath</td>
+</tr>
+<tr>
+<td>调用</td>
+<td>callMcpServerTool / readMcpResource / getToolMeta / getToolsWithUi</td>
+</tr>
+<tr>
+<td>市场</td>
+<td>installMarketMcpServer / uninstallMarketMcpServer</td>
+</tr>
+<tr>
+<td>冲突</td>
+<td>checkMcpEnableConflict / resolveMcpEnableConflict</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-mcpclientpoolmainjs40633">3. McpClientPool（main.js:40633，单例连接池）</h2>
+<pre class="mermaid">flowchart TD
+  A[connect serverConfig] --&gt; B{guided setup?}
+  B -- 需要 --&gt; S[跳过连接, 标记 needs-setup]
+  B -- 否 --&gt; T[按 type 建 transport: stdio/SSE/HTTP]
+  T --&gt; C[client.connect 带 AbortSignal]
+  C --&gt; L[listTools → 工具清单]
+  L --&gt; H{tools&gt;0?}
+  H -- 是 --&gt; OK[status=connected + 订阅 close 事件]
+  H -- 否 --&gt; U[status=unhealthy 无工具]
+  OK --&gt; N[notifyStateChange → mcpStatusSubscription 推 UI]
+  C -. 断开 .-&gt; R[网络恢复重连(reconnectLocks) 除非 intentionalDisconnects]
+</pre>
+<p>关键方法/字段：
+- <code>connect(cfg)</code>（40649）：建 transport → <code>client.connect(transport, abortSignal)</code> → <code>listTools()</code> 映射工具 → 标记 connected/unhealthy；监听 upstream close 做自动重连（<code>reconnectLocks</code>、<code>intentionalDisconnects</code> 区分主动断开）。
+- <code>disconnect(name,{force})</code>（40811）：<strong>legokit upstream 默认拒绝断开（permanent）</strong>；<code>cancelOAuthFlowForServer</code> + transport.close（带超时 race）。
+- <code>getEffectiveToolNames(legokitId,{exposeGlobalMcpTools})</code>（40965）：算出当前会话有效工具名集合，供 agent loop 懒加载 diff（01 章 §3 步骤 5）。
+- <code>callTool(server,tool,args)</code>：内部直接调（如 wecom-mcp <code>get_userlist</code> main.js:54183）。
+- <code>getConnected()</code>、<code>onStateChange()</code>、<code>isGlobalLazyMcpUpstream</code>（懒加载上游过滤）。</p>
+<h2 id="4-mcp-serverchunksserver-prettyjsinmemory">4. 内置 MCP server（chunks/server-*.pretty.js，InMemory 进程内）</h2>
+<table>
+<thead>
+<tr>
+<th>chunk</th>
+<th>server</th>
+<th>工具样例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>server-C83v1fyR</td>
+<td><strong>浏览器</strong>（browser bridge）</td>
+<td>list_tabs / close_tab / navigate / snapshot</td>
+</tr>
+<tr>
+<td>server-CHTa_P20</td>
+<td>Reminders 提醒事项</td>
+<td>list_lists / list_reminders / create_reminder</td>
+</tr>
+<tr>
+<td>server-ColZGfYN</td>
+<td>Calendar 日历</td>
+<td>list_calendars / list_events / create_event</td>
+</tr>
+<tr>
+<td>server-CS2C6rzp</td>
+<td>Notes 备忘录</td>
+<td>list_folders / list_notes / create_note</td>
+</tr>
+<tr>
+<td>server-D8CXlCtM</td>
+<td>Mail 邮件</td>
+<td>list_mailboxes / search_messages / read_message</td>
+</tr>
+<tr>
+<td>server-DUScHz84</td>
+<td>Contacts 通讯录</td>
+<td>list_contacts / search_contacts / get_contact</td>
+</tr>
+<tr>
+<td>server-v5LzjRqO</td>
+<td><strong>wecom-mcp</strong> 企业微信</td>
+<td>（企业微信会话/消息）</td>
+</tr>
+<tr>
+<td>- Apple 生态 server（Reminders/Calendar/Notes/Mail/Contacts）由 <code>appleConnectorsRouter</code>（main.js:118833）启停，底层走 AppleScript/EventKit（需 TCC 权限，见 02 章）。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- 浏览器 server 与 extensionRelay/native-messaging 协同（见 07 章）。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-mcp-uimainjs74232">5. 适配器与 MCP-UI（main.js:74232）</h2>
+<ul>
+<li><code>McpAdaptor</code>（serverName 默认 <code>qw-builtin</code>）：聚合内置工具，持 <code>ToolRegistry</code> + <code>BuiltinToolRegistry</code>，订阅 pool 状态变化。qodercli 看到的 builtin 工具前缀即 <code>mcp__qw-builtin__...</code>（01 章 hook matcher 实证 <code>mcp__qw-builtin__mcp_workspace_bash</code>）。</li>
+<li><code>getToolsWithUi</code>：返回带 UI 的 MCP 工具，渲染进程 <code>use-mcp-app-bridge</code> / <code>mcp-app-preview</code>（renderer chunk）承载交互式 MCP App。</li>
+<li><code>sanitizeMcpServersForMainSession</code>（01 章）：注入 SDK 前清洗 server 配置；<code>strictMcpConfig:true</code> 严格模式。</li>
+</ul>
+<h2 id="6">6. 配置面</h2>
+<ul>
+<li>自定义 server：<code>importMcpConfig(jsonContent)</code> 粘贴标准 MCP JSON（<code>{mcpServers:{name:{command,args,env}|{url}}}</code>）。</li>
+<li><code>mcpLazyLoad</code>（默认开）：工具懒加载，减少首轮 token。</li>
+<li>guided setup：需要参数/OAuth 的 server 先引导（<code>applyGuidedSetupConfig</code>/<code>startMcpAdaptorAuth</code>）。</li>
+<li>内置 server 参数：<code>saveBuiltinMcpServerParameters</code>。</li>
+<li>启用冲突：<code>checkMcpEnableConflict</code>/<code>resolveMcpEnableConflict</code>（同名/端口冲突）。</li>
+<li>市场：<code>installMarketMcpServer</code>，目录 <code>initMcpMarketCatalog</code>（启动延迟任务）。</li>
+</ul>
+<h2 id="7">7. 数据模型</h2>
+<ul>
+<li>MCP server 配置持久化在 config/settings 表（自定义 server JSON）。</li>
+<li>连接状态、工具列表为内存态（<code>McpClientPool.clients</code> Map），经 subscription 推 UI，不落库。</li>
+<li>OAuth token 经 <code>clearMcpAuthToken</code> 管理（keytar 安全存储，见 09 章）。</li>
+</ul></div>
+</section><section class="domain" id="im">
+<h2 class="domain-title"><span class="dot">💬</span>IM 渠道 + Cron + 内置工具</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>：ChannelManager :46444、ReplyDispatcher :47475、CronService :118433、内置工具注册表 :71210。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 是「<strong>可被 IM 驱动的桌面 agent</strong>」：企业微信 / 钉钉 / 飞书(Lark) / MS Teams 的消息进来 → 归一化 → <code>unifiedExecutor.submitOrQueue</code>（复用 01 章同一 agent loop）→ <code>ReplyDispatcher</code> 监听该会话的流式输出并回推到 IM 渠道。<code>croner</code> 驱动的 Cron 让 agent 定时自跑。agent 还能用 <code>qoder_delegate_to_im</code> / <code>qoder_send_message</code> 反向主动给 IM 发消息。</p>
+<h2 id="1-mainjs71210-qodercli">1. 内置工具注册表（main.js:71210）—— qodercli 可调的全部内置能力</h2>
+<blockquote>
+<p>经 MCP adaptor（<code>qw-builtin</code>）暴露给 CLI。这是整个产品的"动作面"：</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qoder_start_task</code> / <code>qoder_list_tasks</code> / <code>qoder_get_task_detail</code> / <code>qoder_cancel_task</code> / <code>qoder_respond_task</code></td>
+<td>任务编排（agent 派生/查询/取消/响应子任务）</td>
+</tr>
+<tr>
+<td><code>qoder_send_message</code> / <code>qoder_send_channel_media</code> / <code>qoder_delegate_to_im</code> / <code>qoder_list_channel_conversations</code></td>
+<td><strong>IM 主动发消息/发媒体/委派/列会话</strong></td>
+</tr>
+<tr>
+<td><code>qoder_cron</code></td>
+<td>agent 自行创建/管理定时任务</td>
+</tr>
+<tr>
+<td><code>qoder_post_vminfo</code></td>
+<td>上报 VM 信息</td>
+</tr>
+<tr>
+<td><code>qw_mcp_list</code> / <code>qw_mcp_get</code> / <code>qw_mcp_call</code></td>
+<td><strong>MCP 懒加载</strong>：先列工具→取详情→再调用（省 token）</td>
+</tr>
+<tr>
+<td><code>present_files</code></td>
+<td>向用户呈现文件（artifact）</td>
+</tr>
+<tr>
+<td><code>memory</code> / <code>memory_search</code> / <code>memory_get</code></td>
+<td>记忆写/检索/读（03 章）</td>
+</tr>
+<tr>
+<td><code>skill_manage</code> / <code>skill_suggest</code></td>
+<td>技能管理/技能进化建议（04 章）</td>
+</tr>
+<tr>
+<td><code>mcp__workspace__bash</code></td>
+<td>VM 工作区内执行 bash（02 章）</td>
+</tr>
+<tr>
+<td><code>mcp__qoderwork__request_qoderwork_directory</code></td>
+<td>申请挂载 qoderwork 目录</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-im-agent">2. IM 消息 → agent → 回流 时序</h2>
+<pre class="mermaid">sequenceDiagram
+  participant IM as 企业微信/钉钉/飞书/Teams
+  participant CM as ChannelManager(:46444)
+  participant Q as unifiedExecutor.submitOrQueue
+  participant Loop as Agent Loop(01章)
+  participant RD as ReplyDispatcher(:47475)
+  IM-&gt;&gt;CM: 收到消息(webhook/stream/WS)
+  CM-&gt;&gt;CM: 归一化 + 鉴权 + chat 配对(channelPairing)
+  CM-&gt;&gt;Q: submitOrQueue({prompt, callerContext:{im channel/user}})
+  Q-&gt;&gt;Loop: executeTask
+  Loop-&gt;&gt;RD: broadcastStreamStart → ReplyDispatcher.watch(subChatId)
+  loop 流式输出
+    Loop-&gt;&gt;RD: dispatchStreamChunkToReplyDispatcher(chunk)
+    RD-&gt;&gt;IM: 聚合成 IM 消息回推(节流/分段)
+  end
+  Loop-&gt;&gt;RD: onComplete → 收尾回推
+</pre>
+<ul>
+<li><code>submitOrQueue</code> 调用点 main.js:66428（带 <code>callerContext</code> 标识 IM 来源），日志 "IM message queued via submitOrQueue"。</li>
+<li><code>ReplyDispatcher</code>（:47475，单例 :47890）：<code>watch(subChatId)</code> 订阅会话流，<code>onChunk</code>/<code>onComplete</code> 把 agent 输出聚合回 IM；<code>clearByChannel</code> 清理。<code>ensureImWatchFn</code> 在 stream-start 时确保已监听（:47928）。</li>
+</ul>
+<h2 id="3-channelsrouter-mainjs11700231-procedure">3. 渠道清单与接入方式（channelsRouter main.js:117002，31 procedure）</h2>
+<table>
+<thead>
+<tr>
+<th>渠道</th>
+<th>配置 procedure</th>
+<th>SDK / 接入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>企业微信 WeCom</td>
+<td><code>wecomRouter</code>/<code>wecomBotRouter</code>（116835/116919）+ wecom-mcp</td>
+<td><code>@wecom/aibot-node-sdk</code>（main.js:74）+ QR 登录（generateQRCode/pollQRCodeResult）</td>
+</tr>
+<tr>
+<td>钉钉 DingTalk</td>
+<td>getDingTalkConfig/saveDingTalkConfig/dingtalkStartQR/dingtalkPollQR</td>
+<td><code>dingtalk-stream</code>（stream 模式长连）+ 扫码登录</td>
+</tr>
+<tr>
+<td>飞书 Feishu / Lark</td>
+<td>getFeishuConfig/getLarkConfig/saveFeishuConfig/saveLarkConfig/feishuStartQR/larkStartQR/feishuPollQR</td>
+<td><code>@larksuiteoapi/node-sdk</code> + 扫码；另有 lark-cli skill（01 章关键词嗅探注入）</td>
+</tr>
+<tr>
+<td>微软 Teams</td>
+<td>getMSTeamsConfig/saveMSTeamsConfig</td>
+<td>WebSocket 长连（WS_HEARTBEAT 30s，main.js:57156）</td>
+</tr>
+<tr>
+<td>- <code>ChannelManager</code>（:46444，单例 :46610）：统一管理所有渠道生命周期，<code>getAllStatuses</code>/<code>getChannelErrors</code>。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- <code>imPolicyStatus</code> / <code>getIMChannelPolicyState</code>：企业策略门（可被服务端管控是否允许 IM 接入）。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- 初始化：启动延迟任务 <code>initImChannels</code>（<code>scheduleDelayedTasks</code>，DELAYS.IM_CHANNELS）。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-channelpairingrouter-mainjs1178268-procedure">4. 渠道配对（channelPairingRouter main.js:117826，8 procedure）</h2>
+<p>把某个 IM 会话/用户与 QoderWork 内的 chat 绑定：
+- <code>checkChatPairingStatus</code> / <code>generateCode</code>（生成配对码）/ <code>listPairings</code> / <code>removePairing</code>。
+- 审批流：<code>listPendingRequests</code> / <code>approvePendingRequest</code> / <code>ignorePendingRequest</code> / <code>requestRepairingFromChat</code>——IM 侧用户请求配对，桌面端审批，防止未授权接入。</p>
+<pre class="mermaid">flowchart LR
+  A[IM用户想接入] --&gt; B[requestRepairing / 输入 generateCode 码]
+  B --&gt; C[listPendingRequests 桌面端可见]
+  C --&gt; D{审批}
+  D -- approve --&gt; E[建立 pairing: IM会话↔chat]
+  D -- ignore --&gt; F[拒绝]
+  E --&gt; G[此后该IM会话消息进入对应chat的agent loop]
+</pre>
+<h2 id="5-cron-cronservice-mainjs118433-cronrouter-118758">5. Cron 定时调度（CronService main.js:118433 + cronRouter :118758）</h2>
+<ul>
+<li>引擎：<code>croner</code> 库（main.js:72），<code>new croner.Cron(expr, {...})</code>（:44881）。</li>
+<li>procedure：<code>list</code>（排序 created_desc/asc）/<code>getTask</code>/<code>create</code>/<code>update</code>/<code>delete</code>/<code>toggleEnabled</code>/<code>runNow</code>/<code>getAllRunLogs</code>/<code>getRunLogs</code>/<code>debugSimulateError</code>/<code>getCronChatGroups</code>。</li>
+<li><code>handleCron</code>（main.js:44958）= 内置工具 <code>qoder_cron</code> 的实现，agent 可自行排程。</li>
+<li>触发时把 prompt 注入对应 chat 的 agent loop；cron 链接的 chat（<code>isChatCronLinked</code>）在 01 章会<strong>跳过 awareness 注入</strong>（定时任务场景不需要人格/记忆开销）。</li>
+<li>运行日志落库（getRunLogs/getAllRunLogs），失败可 <code>debugSimulateError</code> 复现。</li>
+<li>初始化：启动延迟任务 <code>initCronScheduler</code>（DELAYS.CRON_SCHEDULER）。</li>
+</ul>
+<h2 id="6">6. 配置面</h2>
+<ul>
+<li>各渠道 config schema：<code>msTeamsConfigSchema</code> / <code>dingTalkConfigSchema</code> / <code>feishuConfigSchema</code>（含 appId/secret/token 等，存 config 表，secret 经 keytar）。</li>
+<li>IM 策略：<code>imPolicyStatus</code>（远端可关）。</li>
+<li>Cron 任务：<code>{expr, prompt, chatId, enabled, ...}</code> 存 SQLite。</li>
+<li>WS 心跳：<code>WS_HEARTBEAT_INTERVAL_MS=30000</code>、<code>WS_PONG_TIMEOUT_MS</code>。</li>
+</ul>
+<h2 id="7">7. 数据模型</h2>
+<ul>
+<li><code>cron_tasks</code>（drizzle 表）：expr/prompt/chatId/enabled/lastRun…；<code>cron_run_logs</code>：运行历史。</li>
+<li><code>channel_pairings</code>：IM 会话 ↔ chat 映射 + 审批状态。</li>
+<li>渠道凭据：config 表 + keytar（secret）。</li>
+<li>IM 来源标记：<code>messages.metadata.callerContext</code> / <code>chats.ext</code>（isCronChat / im channel 信息）。</li>
+</ul></div>
+</section><section class="domain" id="browser">
+<h2 class="domain-title"><span class="dot">🌐</span>浏览器扩展桥</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>（ExtensionRelayServer :100455、NativeMessaging :101850）、<code>Resources/chrome-extension/</code>、<code>Resources/native-messaging-host/host.js</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 让 agent 控制<strong>用户自己的 Chrome</strong>（而非另起 Chromium）：内置 browser MCP server 的工具（list_tabs/navigate/snapshot…，见 05 章）→ 本地 <code>ExtensionRelayServer</code>（WebSocket，端口 16789）→ Chrome 扩展（用 <code>chrome.debugger</code> = CDP attach 真实标签页）。两条发现路径：直接 WebSocket，或 Chrome <strong>Native Messaging</strong>（host.js 读 <code>relay-port.json</code> 找端口）兜底。</p>
+<h2 id="1">1. 架构图</h2>
+<pre class="mermaid">flowchart LR
+  subgraph 主进程
+    BSrv["browser MCP server\n(chunk server-C83v1fyR)\nlist_tabs/navigate/snapshot"]
+    Relay["ExtensionRelayServer :16789\nwssExtension / wssCdp / wssV2Extension"]
+    BSrv &lt;--&gt; Relay
+  end
+  subgraph Chrome
+    BG["扩展 background.js\nrelayWs + chrome.debugger(CDP)"]
+    CS["content-scripts\naccessibility-tree / page-bridge / visual-indicator"]
+    Page[(真实网页标签)]
+    BG -- CDP attach/sendCommand --&gt; Page
+    CS --&gt; Page
+  end
+  subgraph 兜底发现
+    NM["Native Messaging host.js\ncom.qoder.work.connector"]
+    NM -- 读 relay-port.json --&gt; Relay
+  end
+  Relay &lt;-- WebSocket --&gt; BG
+  Agent[qodercli agent] --&gt;|调用 browser 工具| BSrv
+</pre>
+<h2 id="2-extensionrelayroutermainjs10243613-procedure">2. extensionRelayRouter（main.js:102436，13 procedure）</h2>
+<table>
+<thead>
+<tr>
+<th>procedure</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>getStatus / getBrowserConnectionStatus</td>
+<td>中继与浏览器连接状态</td>
+</tr>
+<tr>
+<td>start / stop / enable / disable</td>
+<td><code>deployChromeExtension()</code> + <code>startExtensionRelay(16789)</code>，持久化 <code>extensionRelayEnabled</code></td>
+</tr>
+<tr>
+<td>getExtensionInstallPath</td>
+<td>扩展解包安装路径</td>
+</tr>
+<tr>
+<td>detectRecommendedBrowser / openBrowserExtensions</td>
+<td>探测默认浏览器、打开扩展管理页</td>
+</tr>
+<tr>
+<td>getBrowserApiVersion / getEffectiveBrowserApiVersion / setBrowserApiVersion</td>
+<td>浏览器 API 版本协商（v1/v2，对应 wssExtension/wssV2Extension）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-extensionrelayservermainjs100455">3. ExtensionRelayServer（main.js:100455）</h2>
+<ul>
+<li>三个 WebSocketServer：<code>wssExtension</code>（v1 扩展协议）、<code>wssCdp</code>（裸 CDP 转发）、<code>wssV2Extension</code>（v2 协议）。</li>
+<li>端口 <code>DEFAULT_RELAY_PORT=16789</code>，仅本地；校验来源 <code>chrome-extension://</code>（:100665/100778）。</li>
+<li><code>_enabled</code> 门控；状态变更广播 UI。</li>
+</ul>
+<h2 id="4-chrome-resourceschrome-extensionmanifestjsonv130">4. Chrome 扩展（Resources/chrome-extension/manifest.json，v1.3.0）</h2>
+<ul>
+<li><strong>权限</strong>：<code>debugger</code>（CDP！）、<code>tabs</code>、<code>tabGroups</code>、<code>activeTab</code>、<code>scripting</code>、<code>storage</code>、<code>alarms</code>、<code>nativeMessaging</code>；host_permissions <code>&lt;all_urls&gt;</code> + <code>127.0.0.1/localhost</code>。</li>
+<li><code>background.js</code>（MV3 service worker）：维护 <code>m.tabs</code>/<code>tabBySession</code>/<code>childSessionToTab</code> 会话映射，<code>relayWs</code> 连中继并自动重连（reconnectAttempt/Timer），<code>chrome.debugger.attach</code> + <code>sendCommand</code>（如 <code>Runtime.evaluate</code>）驱动页面；<code>chrome.storage.session</code> 持久化已 attach 标签，SW 复活后 rehydrate（<code>Ue</code>）。native host id <code>com.qoder.work.connector</code>，keepalive alarm <code>relay-keepalive</code>。</li>
+<li><code>content-scripts/</code>：<code>accessibility-tree.js</code>（抓 a11y 树供 snapshot）、<code>page-bridge.js</code>（页面侧桥）、<code>visual-indicator.js</code>（操作高亮提示用户）。</li>
+</ul>
+<h2 id="5-native-messaging-hostresourcesnative-messaging-hosthostjs">5. Native Messaging host（Resources/native-messaging-host/host.js）</h2>
+<ul>
+<li>纯 Node（不依赖 Electron），Chrome Native Messaging 协议：stdin 读「4 字节 LE uint32 长度 + JSON」，stdout 同格式返回。</li>
+<li>扫描多产品/渠道的 userData（qoderwork / qoderworkcn × stable/canary/dev，<code>CLIENT_CANDIDATES</code>），读各自 <code>relay-port.json</code> 找到正在运行的中继端口，回给扩展——解决"扩展怎么知道连哪个端口"。</li>
+<li>注册：mac 写 NativeMessagingHosts manifest；Windows 写注册表 <code>HKCU\...\NativeMessagingHosts\com.qoder.work.connector</code>（main.js:101857）。</li>
+</ul>
+<h2 id="6">6. 配置面</h2>
+<ul>
+<li><code>extensionRelayEnabled</code>（setting）、<code>browserApiVersion</code>（v1/v2）。</li>
+<li>端口文件：<code>&lt;userData&gt;/relay-port.json</code>（RELAY_PORT_FILENAME，main.js:101956）。</li>
+<li>初始化：启动延迟任务 <code>initExtensionRelay</code>（DELAYS.EXTENSION_RELAY）。</li>
+</ul>
+<h2 id="7">7. 数据模型</h2>
+<ul>
+<li>无独立 SQLite；状态在内存 + <code>relay-port.json</code>，扩展侧用 <code>chrome.storage.session</code>。</li>
+<li>设计取舍：用 CDP debugger 控制用户<strong>已登录</strong>的真实浏览器（保留登录态/cookie），代价是 Chrome 顶部会显示"QoderWork started debugging this browser"，靠 visual-indicator 与权限设计降低惊扰。</li>
+</ul></div>
+</section><section class="domain" id="voice">
+<h2 class="domain-title"><span class="dot">🎙️</span>语音 / ASR</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>：asrRouter :121973、startAsrSession :91913、voiceOnboardingRouter :122475、djiMicRouter :122050。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 支持把语音转文字作为输入：本地采麦 → 流式音频经 <strong>WebSocket 上送云端 ASR</strong> → 文字回流；可选 <strong>LLM 润色</strong>（polish）把口语整理成清晰指令。还集成 DJI 麦克风（快捷键触发）与首启权限引导。</p>
+<h2 id="1">1. 功能/路由</h2>
+<table>
+<thead>
+<tr>
+<th>域</th>
+<th>router</th>
+<th>procedure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ASR</td>
+<td><code>asrRouter</code> :121973</td>
+<td>start / sendAudio / stop / getActiveSession / polish</td>
+</tr>
+<tr>
+<td>语音引导</td>
+<td><code>voiceOnboardingRouter</code> :122475</td>
+<td>getPermissionStatus / requestMicrophone / requestAccessibility / getFnInterceptors / openInterceptorAction / getInterceptorIcons</td>
+</tr>
+<tr>
+<td>DJI 麦克风</td>
+<td><code>djiMicRouter</code> :122050</td>
+<td>registerShortcut / unregisterShortcut / checkAccessibility / simulateVolumeUp</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-asr">2. ASR 流程</h2>
+<pre class="mermaid">sequenceDiagram
+  participant UI as Renderer(use-voice-input/voice-overlay)
+  participant R as asrRouter
+  participant WS as ASR WebSocket(云端)
+  participant LLM as polishVoiceText
+  UI-&gt;&gt;R: asr.start → startAsrSession()
+  R-&gt;&gt;WS: connectWebSocket(inferBaseUrlToAsrWebSocketUrl)
+  loop 录音中
+    UI-&gt;&gt;R: asr.sendAudio(base64 chunk)
+    R-&gt;&gt;WS: 发送音频帧(未连上则 buffer)
+    WS--&gt;&gt;UI: 流式识别文本(经 stream 推回)
+  end
+  UI-&gt;&gt;R: asr.stop
+  opt 润色
+    UI-&gt;&gt;R: asr.polish(text)
+    R-&gt;&gt;LLM: polishVoiceText → 整理为指令
+    LLM--&gt;&gt;UI: 润色后文本
+  end
+</pre>
+<ul>
+<li><code>startAsrSession</code>（91913）：生成 sessionId，<code>inferBaseUrlToAsrWebSocketUrl</code> 由账号 baseUrl 推 ASR WSS 地址，<code>connectWebSocket</code>；<code>sendAudio</code> 在 WS 未就绪时缓冲音频。</li>
+<li><code>polishVoiceText</code>（121928）：调模型把口语转写润色（事件 <code>voice_input_polish_started/completed/failed</code>）。</li>
+<li>渲染侧：<code>use-voice-input</code>、<code>voice-overlay</code>（录音浮层）。</li>
+</ul>
+<h2 id="3-fn">3. 权限与 Fn 键拦截</h2>
+<ul>
+<li><code>voiceOnboardingRouter</code>：检查/申请麦克风（<code>systemPreferences.askForMediaAccess</code>）与辅助功能权限（02 章 TCC）。</li>
+<li><strong>Fn 键拦截</strong>：<code>getFnInterceptors</code>/<code>openInterceptorAction</code>/<code>getInterceptorIcons</code> + <code>bin/fn_key_tap.node</code>（原生模块）——双击/长按 Fn 启动语音输入（类 macOS 听写）。</li>
+<li>DJI Mic：<code>registerShortcut</code>/<code>simulateVolumeUp</code>，把 DJI 麦克风的音量键映射成录音开关（<code>uiohook-napi</code> 全局热键）。</li>
+</ul>
+<h2 id="4">4. 配置面 / 数据</h2>
+<ul>
+<li>麦克风/辅助功能权限态（TCC）。</li>
+<li>ASR session 为内存态（<code>activeSession</code>），不落库。</li>
+<li>语音相关事件进遥测（11 章）。</li>
+</ul></div>
+</section><section class="domain" id="auth">
+<h2 class="domain-title"><span class="dot">🔐</span>鉴权 / 账号 / 模型</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>：AuthManager :6876、authRouter :90378、qoder-auth-wasm :4716、getQoderWorkModels :43144。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 用 OAuth 登录（浏览器拿 loginUrl）+ 本地 <code>safeStorage</code> 加密持久化 token + <strong>WASM 鉴权模块</strong>（<code>qoder_auth_wasm</code>）做 token 处理；<code>AuthManager</code> 负责刷新与给 qodercli 取 access token。模型走服务端「模型策略」下发（按 scene），支持自定义模型与用量统计。</p>
+<h2 id="1-authroutermainjs903789-procedure">1. authRouter（main.js:90378，9 procedure）</h2>
+<table>
+<thead>
+<tr>
+<th>procedure</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>login</td>
+<td><code>getAuthManagerV2().login()</code>，未登录返回 loginUrl（浏览器 OAuth），登录后 <code>startChannels()</code> 启 IM + 触发 postLoginHook</td>
+</tr>
+<tr>
+<td>status</td>
+<td>账号状态/tier/邮箱/头像/orgId</td>
+</tr>
+<tr>
+<td>qoderLogout</td>
+<td>登出（清 token + 停渠道）</td>
+</tr>
+<tr>
+<td>getModels</td>
+<td>可用模型列表（含 customModels）</td>
+</tr>
+<tr>
+<td>addCustomModel / deleteCustomModel</td>
+<td>自定义模型（如自建网关）</td>
+</tr>
+<tr>
+<td>getUsage / getModelActivities</td>
+<td>用量与模型活动统计</td>
+</tr>
+<tr>
+<td>feedback</td>
+<td>账号侧反馈</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-authmanagermainjs6876-wasm">2. AuthManager（main.js:6876）+ WASM</h2>
+<pre class="mermaid">flowchart TD
+  L[login] --&gt; U{已登录?}
+  U -- 否 --&gt; URL[返回 loginUrl] --&gt; B[系统浏览器 OAuth] --&gt; CB[deep link 回调 qoderwork://]
+  CB --&gt; WASM[qoder_auth_wasm 处理凭据]
+  WASM --&gt; ENC[safeStorage.encryptString 持久化]
+  U -- 是 --&gt; S[startChannels + postLoginHook]
+  subgraph 运行期
+    CLI[qodercli 需要 token] --&gt; GAT[getAccessTokenForCLI]
+    GAT --&gt; EXP{token 过期?}
+    EXP -- 是 --&gt; RF[refresh] --&gt; ENC
+    EXP -- 否 --&gt; TK[返回 cache.token]
+  end
+  RF -. 401 .-&gt; LO[logout unauthorized]
+</pre>
+<ul>
+<li><code>getAccessTokenForCLI(opts)</code>（6948）：到期/forceRefresh 时 <code>refresh()</code>，给 SDK 注入 auth payload（01 章 <code>createAuthPayloadFile</code>）。</li>
+<li><code>refreshAccountStatus</code>（6921）：401 且 token 未轮换 → <code>logout("unauthorized")</code>；token 已轮换则忽略（避免误登出）。</li>
+<li><strong>凭据加密</strong>：<code>electron.safeStorage.encryptString/decryptString</code>（main.js:4117/4128），不可用时降级明文 <code>.json</code> 并告警（4298）。</li>
+<li><strong>WASM</strong>：<code>qoder_auth_wasm_bg.wasm</code>（Resources/qoder-auth-wasm/）经 <code>process.resourcesPath</code> 加载（4716），用于凭据/签名等敏感运算（避免在 JS 明文暴露算法）。</li>
+<li>deep link：Info.plist 注册 URL scheme（<code>qoderwork://</code>，见资源 url_schemes），OAuth 回调拉起应用。</li>
+<li><code>keytar</code>（unpacked node_modules）用于 VM service（<code>QoderWorkVM</code>）等密钥，auth 主路径用 safeStorage。</li>
+</ul>
+<h2 id="3-mainjs43144">3. 模型策略（main.js:43144）</h2>
+<ul>
+<li><code>getQoderWorkModels({scene})</code>：向服务端按 <code>scene</code>（默认 <code>DEFAULT_MODEL_POLICY_SCENE="qwork"</code>）拉取模型清单 <code>{models[], customModels[]}</code>。</li>
+<li><code>modelLevel</code>：会话级（<code>sub_chats.modelLevel</code>）或全局 <code>getModelLevel()</code>（默认 <code>DEFAULT_MODEL</code>）；<code>validateModelLevel</code>（01 章）校验是否在清单内，否则回退默认。</li>
+<li><code>createMainSessionResolveModel(subChatId, level)</code>：给 SDK 的 <code>resolveModel</code> 回调，运行时解析真实模型 id（超时 5s）。</li>
+<li>切换：<code>agent.setCurrentSessionModel</code>（02/01 章）热切；<code>chats.setSessionModelLevel</code>。</li>
+<li>自定义模型：<code>addCustomModel</code>（接入自建/第三方网关）。</li>
+</ul>
+<h2 id="4">4. 配置面</h2>
+<ul>
+<li><code>modelLevel</code>（全局/会话）。</li>
+<li>自定义模型配置（endpoint/key，key 经 safeStorage）。</li>
+<li>账号 tier 影响功能门（如 <code>proUpgradeRouter</code> getEligibility/claim，Pro 升级）。</li>
+<li>版本封禁：<code>isCurrentVersionBlocked</code>/<code>isCurrentVersionDisabled</code>（01 章 submitMessage 与 DWS hook），服务端可禁用过旧客户端。</li>
+</ul>
+<h2 id="5">5. 数据模型</h2>
+<ul>
+<li>账号凭据：<code>&lt;userData&gt;/...auth...</code>（safeStorage 加密 blob）。</li>
+<li>模型清单：内存缓存 + 远端刷新。</li>
+<li>用量：服务端统计，<code>getUsage</code> 拉取。</li>
+<li>历史迁移痕迹：<code>migrations/0006_anthropic_multi_account.sql</code>、<code>0009_remove_anthropic_tables.sql</code>、<code>0010_remove_claude_code_credentials.sql</code>——<strong>早期版本曾直接管理 Anthropic 多账号 / Claude Code 凭据，后改为统一 Qoder 账号体系</strong>（重要演进证据）。</li>
+</ul></div>
+</section><section class="domain" id="storage">
+<h2 class="domain-title"><span class="dot">🗄️</span>项目 / 会话 / 存储</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>chunks/index-Ptir0Q9g.pretty.js</code>（drizzle schema）、<code>Resources/migrations/*.sql</code>（29 个迁移）、projectsRouter :3131、chatBaseRouter :84927。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>QoderWork 用 <strong>better-sqlite3 + drizzle-orm</strong> 做本地存储，WAL 模式。核心层级：<code>projects</code>（关联 git 仓库）→ <code>chats</code>（会话/任务，关联 worktree/PR）→ <code>sub_chats</code>（子会话，持 sessionId/streamId/modelLevel）→ <code>messages</code>（消息分片 parts，带全文检索）。另有定时任务、技能进化建议、MCP OAuth token、自定义模型等表。</p>
+<h2 id="1">1. 三层会话模型</h2>
+<pre class="mermaid">erDiagram
+  projects ||--o{ chats : has
+  chats ||--o{ sub_chats : has
+  sub_chats ||--o{ messages : has
+  scheduled_tasks ||--o{ task_run_logs : logs
+  projects {
+    text id PK
+    text name
+    text path UK
+    text git_remote_url
+    text git_provider
+    text git_owner
+    text git_repo
+  }
+  chats {
+    text id PK
+    text project_id FK
+    text name
+    text worktree_path
+    text branch
+    text base_branch
+    text pr_url
+    int  pr_number
+    text additional_directories
+    text output_directory
+    text chat_type
+    text wecom_account_id
+    text ext
+    int  archived_at
+    int  deleted_at
+  }
+  sub_chats {
+    text id PK
+    text chat_id FK
+    text session_id
+    text stream_id
+    text mode
+    text model_level
+    text ext
+  }
+  messages {
+    text id PK
+    text sub_chat_id FK
+    int  sequence
+    text role
+    text parts
+    text metadata
+    text searchable_text
+    text search_status
+  }
+</pre>
+<h2 id="2-13-fts5">2. 全部表（13 张 + FTS5）</h2>
+<table>
+<thead>
+<tr>
+<th>表</th>
+<th>用途</th>
+<th>关键列</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>projects</code></td>
+<td>项目/仓库</td>
+<td>path(unique), git_remote_url/provider/owner/repo</td>
+</tr>
+<tr>
+<td><code>chats</code></td>
+<td>会话/任务</td>
+<td>project_id, worktree_path, branch/base_branch, pr_url/pr_number, additional_directories, output_directory, chat_type, wecom_account_id/user_id, ext(JSON), source_chat_id</td>
+</tr>
+<tr>
+<td><code>sub_chats</code></td>
+<td>子会话</td>
+<td>chat_id, session_id, stream_id, mode, model_level, messages, feedback, ext(contextUsage/sessionMemoryPath/workspaceModeId)</td>
+</tr>
+<tr>
+<td><code>messages</code></td>
+<td>消息</td>
+<td>sub_chat_id, sequence, role, parts(JSON), metadata(shouldResume/sdkMessageUuid), searchable_text, search_status</td>
+</tr>
+<tr>
+<td><code>messages_fts</code></td>
+<td>全文检索</td>
+<td>FTS5 trigram（main.js:2602）</td>
+</tr>
+<tr>
+<td><code>channel_pairings</code> / <code>_v2</code></td>
+<td>IM 配对</td>
+<td>channel_id, conversation_id/type, robot_id, binding_key, sender_staff_id</td>
+</tr>
+<tr>
+<td><code>app_settings</code></td>
+<td>KV 设置</td>
+<td>key, value, updated_at</td>
+</tr>
+<tr>
+<td><code>byok_custom_models</code></td>
+<td>自定义模型(BYOK)</td>
+<td>provider, url, model, format, is_vl, is_reasoning, max_input/output_tokens, encrypted_parameters</td>
+</tr>
+<tr>
+<td><code>mcp_oauth_tokens</code></td>
+<td>MCP OAuth</td>
+<td>server_name, expires_at, encryption_version（加密存）</td>
+</tr>
+<tr>
+<td><code>scheduled_tasks</code></td>
+<td>定时任务</td>
+<td>name, project_id, enabled, delete_after_run, missed_run_policy, schedule(cron), payload, next/last/running_at</td>
+</tr>
+<tr>
+<td><code>task_run_logs</code></td>
+<td>任务运行日志</td>
+<td>task_id, chat_id, run_at, duration_ms, status, error, trigger</td>
+</tr>
+<tr>
+<td><code>nudge_logs</code></td>
+<td>主动提醒/审查日志</td>
+<td>type, review_type, title, preview, review_id, awareness_target</td>
+</tr>
+<tr>
+<td><code>skill_evolution_suggestions</code></td>
+<td>技能进化建议</td>
+<td>skill_name, action, summary, rationale, skill_file_hash, status, snapshot_path, expires_at</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-gitprojectsrouter-mainjs31319-procedure">3. 项目与 Git（projectsRouter main.js:3131，9 procedure）</h2>
+<ul>
+<li><code>getLaunchDirectory</code>、<code>list</code>、<code>getOrCreateDefault</code>/<code>getOrCreateDefaultWorkspace</code>、<code>get</code>、<code>create</code>、<code>rename</code>、<code>delete</code>、<code>getGitBranch</code>。</li>
+<li>创建项目时探测 git：<code>gitRemoteUrl</code>/<code>gitProvider</code>/<code>gitOwner</code>/<code>gitRepo</code>（用于 PR/仓库识别）。</li>
+<li><code>chats</code> 带 <code>worktree_path</code>/<code>branch</code>/<code>base_branch</code>/<code>pr_url</code>/<code>pr_number</code>——即每个任务可在<strong>独立 git worktree + 分支</strong>上跑并开 PR（agent 工作树隔离，呼应 <code>ccg:worktree</code> 类能力）。</li>
+</ul>
+<h2 id="4-chatbaserouter-mainjs8492726-procedure">4. 会话管理（chatBaseRouter main.js:84927，26 procedure）</h2>
+<p><code>list</code>/<code>listForMention</code>/<code>listImChannelSidebar</code>/<code>listRecent</code>/<code>listArchived</code>/<code>getOrCreateDefault</code>/<code>get</code>/<code>create</code>/<code>rename</code>/<code>updateTimestamp</code>/<code>updateAdditionalDirectories</code>/<code>archive</code>/…；子会话（subChatRouter）含 <code>rollbackToMessage</code>（回滚）、<code>updateSubChatMode</code>、<code>get/setSessionModelLevel</code>、<code>getWorkspaceModeId/setWorkspaceModeId</code>（关联 legokit 模式）、<code>setContextUsageSnapshot</code>。
+- 历史导入：<code>cliImportRouter.scanCliSessions</code>/<code>importCliSessions</code>（从 qodercli CLI 会话导入）。
+- 导出/统计：<code>chatAnalyticsRouter.exportChat</code>/<code>getChatStats</code>。
+- 搜索：<code>messagesRouter.searchInSubChat</code>（走 messages_fts）/<code>listAround</code>/<code>listAfterSubChat</code>。</p>
+<h2 id="5-migrations29-drizzle">5. 迁移历史（migrations/，29 个，drizzle）—— 产品演进证据</h2>
+<ul>
+<li><code>0006_anthropic_multi_account</code> → <code>0009_remove_anthropic_tables</code> → <code>0010_remove_claude_code_credentials</code>：<strong>早期直管 Anthropic 多账号与 Claude Code 凭据，后统一到 Qoder 账号</strong>。</li>
+<li><code>0008_add_output_directory</code>：引入产物输出目录（artifact）。</li>
+<li>迁移在主进程启动时经 drizzle <code>migrator</code> 跑，另有 <code>migration-worker.js</code>（worker 线程做重迁移）+ <code>migrationRouter</code>（getStatus/migrateSubChatOnDemand 按需迁移大会话）。</li>
+</ul>
+<h2 id="6">6. 存储位置 / 配置</h2>
+<ul>
+<li>主库：<code>&lt;userData&gt;/...sqlite</code>（better-sqlite3，WAL，<code>getDatabase()</code>）。</li>
+<li>记忆库：每 agent 独立 SQLite（03 章），与主库分离。</li>
+<li>设置：<code>app_settings</code> 表（KV）+ config service 快照。</li>
+<li>敏感：<code>mcp_oauth_tokens.encryptedParameters</code>、<code>byok_custom_models.encrypted_parameters</code> 加密列 + safeStorage（09 章）。</li>
+</ul></div>
+</section><section class="domain" id="lifecycle">
+<h2 class="domain-title"><span class="dot">♻️</span>生命周期 / 更新 / 遥测</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>：single instance :638、scheduleDelayedTasks :125828、electron-updater :90/124946、ARMS RUM :691、settingsRouter :113448。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>主进程启动后：单实例锁 → 建主窗 + tRPC IPC → <strong>22 个延迟任务分批初始化</strong>各子系统（避免冷启动卡顿）。遥测用阿里 <strong>ARMS RUM</strong>（崩溃/异常/自定义事件）+ <strong>OpenTelemetry</strong>（OTLP 日志）+ 自有 <code>trackingService</code>。更新走 <strong>electron-updater</strong>（<code>app-update.yml</code>）。<code>settingsRouter</code> 是最大路由（77 procedure），集中管理所有偏好。</p>
+<h2 id="1">1. 启动时序</h2>
+<pre class="mermaid">sequenceDiagram
+  participant App as Electron app
+  App-&gt;&gt;App: requestSingleInstanceLock (失败则 cleanupStaleLocks 重试)
+  App-&gt;&gt;App: armsRum.init() 遥测
+  App-&gt;&gt;App: app.whenReady → createMainWindow
+  App-&gt;&gt;App: initializeIpcHandler(createAppRouter) 挂 tRPC
+  App-&gt;&gt;App: 跑 drizzle migrations (+ migration-worker)
+  App-&gt;&gt;App: scheduleDelayedTasks() 分批 setTimeout 初始化
+  Note over App: 22 个延迟任务按 DELAYS.* 错峰
+</pre>
+<h2 id="2-22-scheduledelayedtasks-mainjs125828">2. 22 个延迟初始化任务（scheduleDelayedTasks main.js:125828）</h2>
+<p><code>mcp_market_catalog</code> · <code>dynamic_text</code> · <code>mcp_pool_and_adaptor</code> · <code>im_channels</code> · <code>virtual_host</code>(VM) · <code>auto_update</code> · <code>extension_relay</code>(浏览器) · <code>cron_scheduler</code> · <code>widget_tools</code> · <code>apple_connectors</code> · <code>microsoft_connector</code> · <code>computer_use_connector</code> · <code>qoderwork_connector</code> · <code>legokit_registry</code> · <code>legokit_discovery</code> · <code>managed_mcp_runtimes</code> · <code>dws_connector</code>(钉钉) · <code>lark_connector</code>(飞书) · <code>host_cli_connector</code> · <code>computer_use_binary_update</code> · <code>computer_use_windows_prefetch</code> · <code>config_service</code> · <code>reflection</code>(记忆反思)。
+- 每个用 <code>timedTask(name,delay,fn)</code> 包裹，向 <code>startupTimer</code> 上报耗时/成功，便于启动性能分析。
+- <code>preWarmShellEnvironment</code>：预热 CLI shell 环境（<code>getCliShellEnvironmentAsync</code>）。</p>
+<h2 id="3-electron-updatermainjs124946">3. 自动更新（electron-updater，main.js:124946）</h2>
+<ul>
+<li><code>initAutoUpdaterConfig</code>：<code>autoUpdater.logger = electron-log</code>，渠道配置来自 <code>Resources/app-update.yml</code>（feed 指向 download.qoder.com）。</li>
+<li>菜单"检查更新"→ <code>update:manual-check</code> IPC → <code>checkForUpdatesHandler</code>；下载完成 <code>quitAndInstall</code>。</li>
+<li>多渠道：stable/canary/dev（native host 的 CLIENT_CANDIDATES 印证）。</li>
+<li>Windows 还有 <code>install-service.ps1</code>（安装系统服务）。</li>
+</ul>
+<h2 id="4">4. 遥测三件套</h2>
+<ul>
+<li><strong>ARMS RUM</strong>（<code>@arms/rum-electron</code>，main.js:691）：<code>init()</code> + <code>setConfig("user",{email/tags})</code> + <code>sendException</code>（崩溃/异常）+ <code>sendCustom</code>（自定义事件）。仅 <code>app.isPackaged</code> 上报真实用户。</li>
+<li><strong>OpenTelemetry</strong>（package.json：sdk-logs/sdk-trace-base/exporter-logs-otlp-http）：<code>TELEMETRY_SERVICE_NAME="qoderwork"</code>，OTLP HTTP 导出结构化日志/trace。</li>
+<li><strong>trackingService</strong>（<code>trackingRouter</code> main.js:116791）：<code>track</code>/<code>trackImmediate</code>/<code>trackBatch</code>，业务埋点（如 <code>CHAT_EVENTS.TASK_START</code>、<code>AUTH_EVENTS.ERROR</code>、<code>VOICE_INPUT_POLISH_*</code>、<code>AWARENESS_EVENTS.*</code>），批量上报。</li>
+<li>崩溃日志：<code>getCrashLogger()</code>（01 章事件循环异常路径）。</li>
+</ul>
+<h2 id="5-settingsrouter-mainjs11344877-procedure">5. 设置中心（settingsRouter main.js:113448，77 procedure）</h2>
+<p>覆盖面（节选）：UI（sidebarChatGroups 排序/分组）、autoLaunch（开机自启）、modelLevel、VM（vmBackend/vmTestEnv/enableVmPrerequisites）、各连接器开关、promptSuggestions、awareness 可见性、主题/语言（79 个 .lproj 本地化）、telemetry 开关等。底层 KV 落 <code>app_settings</code> 表 + config service 远端快照（部分设置服务端可下发/锁定）。
+- <code>dynamicTextRouter</code>（main.js:121739）：<code>getText</code>/<code>getErrorText</code>/<code>getModelMeta</code>/<code>forceRefresh</code>——<strong>文案/错误信息/模型元数据从服务端动态下发</strong>（<code>dynamic-text/qoder-work.json</code> 为内置兜底），便于不发版改文案。
+- <code>clientBlockRouter.getStatus</code> / <code>isCurrentVersionBlocked</code>：版本封禁门（01/09 章）。</p>
+<h2 id="6">6. 数据 / 配置</h2>
+<ul>
+<li><code>app_settings</code>(KV) + <code>configService.*Snapshot</code>（远端策略快照）。</li>
+<li>启动性能：<code>startupTimer</code>（内存，遥测上报）。</li>
+<li>更新元数据：<code>app-update.yml</code> + electron-updater 缓存。</li>
+<li>日志：electron-log 文件（<code>&lt;userData&gt;/logs</code>）。</li>
+</ul></div>
+</section><section class="domain" id="evolution">
+<h2 class="domain-title"><span class="dot">📈</span>技能进化 + Nudge 审查</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>main/main.pretty.js</code>：Nudge :69033、handleSkillSuggest :69324、writeSkillEvolutionSuggestions :69038、skill_suggest 工具定义 :44448、settingsRouter nudge :113992。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>这是 QoderWork 区别于普通 coding agent 的「自省 / 自改进」回路：任务结束后跑一次<strong>自动 awareness review</strong>（在 qodercli 侧），产出两类东西——① <strong>Nudge</strong>：主动提醒/审查结论推给用户（落 <code>nudge_logs</code>）；② <strong>Skill Evolution 建议</strong>：建议新增/修补哪个技能，但<strong>只记录待用户批准，不自动改技能文件</strong>（落 <code>skill_evolution_suggestions</code>）。批准后才真正演化技能。</p>
+<h2 id="1">1. 整体回路</h2>
+<pre class="mermaid">flowchart TD
+  T[一次 agent 任务结束] --&gt; RV[自动 awareness review&lt;br/&gt;在 qodercli 内]
+  RV --&gt; SS["调内置工具 skill_suggest&lt;br/&gt;(main.js:44448)"]
+  SS --&gt; H[handleSkillSuggest :69324]
+  H --&gt; W[writeSkillEvolutionSuggestions :69038]
+  W --&gt; DB[(skill_evolution_suggestions 表&lt;br/&gt;status=pending)]
+  W --&gt; NL[insertNudgeLogs → nudge_logs]
+  W --&gt; TK[track NUDGE_REVIEW_COMPLETED]
+  DB --&gt; UI[UI 展示待批准建议]
+  UI --&gt; AP{用户批准?}
+  AP -- 批准 --&gt; EVO[evolutionChatId 起会话&lt;br/&gt;真正新增/修补 SKILL.md]
+  AP -- 拒绝 --&gt; X[丢弃/过期 expiresAt]
+  RV --&gt; ND[Nudge: reviewType agent/skill&lt;br/&gt;主动提醒结论]
+  ND --&gt; UI2[侧栏/通知呈现]
+</pre>
+<h2 id="2-skill-evolution">2. Skill Evolution</h2>
+<ul>
+<li><strong>工具契约</strong>（main.js:44448）：<code>skill_suggest</code> 描述明确——"Submit skill evolution suggestions from an automated QoderWork awareness review. <strong>This tool only records pending suggestions for user approval; it does not create or edit skill files.</strong>" 安全边界清晰：AI 只建议，人批准。</li>
+<li><code>handleSkillSuggest(args,...)</code>（69324）：取 <code>suggestions</code>，调 <code>writeSkillEvolutionSuggestions({reviewId, suggestions, reviewScore})</code>。</li>
+<li><code>writeSkillEvolutionSuggestions</code>（69038）：写入 <code>skill_evolution_suggestions</code>（字段：skill_name / action(create|patch|...) / summary / rationale / skill_file_hash / status / evolution_chat_id / snapshot_path / expires_at / source_sub_chat_id / source_session_id / review_id）。</li>
+<li>批准后经 <code>evolution_chat_id</code> 关联的会话执行真正的技能修改；事件 <code>awareness_skill_suggestion_evolved</code>。</li>
+<li>另一内置工具 <code>skill_manage</code>（<code>handleSkillManage</code> :68989）：供 agent 在会话内做技能的增删改查管理操作。</li>
+<li>开关：<code>isSkillEvolutionEffectivelyEnabled</code>（main.js:3813）= awareness 开 + 远端允许 + <code>awarenessSkillEvolutionEnabled</code>(默认 true)。</li>
+</ul>
+<h2 id="3-nudge">3. Nudge（主动审查/提醒）</h2>
+<ul>
+<li><code>nudge_logs</code> 表（10 章）：<code>type</code> / <code>reviewType</code>(agent|skill) / <code>title</code> / <code>preview</code> / <code>review_id</code> / <code>awarenessTarget</code> / <code>durationMs</code> / <code>isError</code>。</li>
+<li>审查类型：<code>reviewType:"agent"</code>（对 agent 本轮工作的复盘，main.js:68812）、<code>reviewType:"skill"</code>（技能相关，69165/69184）。</li>
+<li><code>insertNudgeLogs</code>（69295）批量落库 + <code>trackingService.track(NUDGE_REVIEW_COMPLETED)</code>。</li>
+<li>事件族 <code>AWARENESS_EVENTS</code>：<code>NUDGE_TOGGLED</code> / <code>NUDGE_REVIEW_COMPLETED</code> / <code>NUDGE_SUGGESTION_GENERATED</code>（main.js:936-938）。</li>
+<li>开关：<code>isNudgeEnabled()</code>（3800）读 <code>nudgeEnabled</code>；<code>settingsRouter</code> 的 toggle（main.js:113992，"Nudge mode toggled"）。</li>
+<li>这对应产品宣传里的「Ultra Review / 让你知道 agent 没跑偏」——长任务后自动复盘并主动 nudge 用户。</li>
+</ul>
+<h2 id="4-awareness">4. 与 awareness 的关系</h2>
+<p>技能进化与 Nudge 都挂在 <strong>awareness 体系</strong>下（<code>AWARENESS_EVENTS</code>、<code>isAwareness*Enabled</code> 门控），即：开启觉知模式后，agent 不仅读写记忆（03 章），还会自评工作质量（Nudge）、自荐能力升级（Skill Evolution）。三者构成"记忆—复盘—进化"闭环。</p>
+<h2 id="5">5. 配置面 / 数据</h2>
+<ul>
+<li><code>nudgeEnabled</code>、<code>awarenessSkillEvolutionEnabled</code>、<code>awareness.skill_evolution_enabled</code>（远端）。</li>
+<li>表：<code>skill_evolution_suggestions</code>（pending 建议，带 expiresAt 自动过期）、<code>nudge_logs</code>（审查历史）。</li>
+<li>快照：<code>skill_evolution_suggestions.snapshot_path</code>（演化前技能快照，可回滚）。</li>
+</ul></div>
+</section><section class="domain" id="ui">
+<h2 class="domain-title"><span class="dot">🖥️</span>渲染层 / UI / Artifacts</h2>
+<div class="md"><blockquote>
+<p>证据自 <code>preload/index.pretty.js</code>、<code>renderer/*.pretty.js</code>、<code>Resources/{canvas,writing}/index.html</code>。</p>
+</blockquote>
+<h2 id="0">0. 结论</h2>
+<p>渲染进程是 <strong>React SPA</strong>，经 preload 的 <code>electronTRPC</code> bridge 用 <strong>tRPC-over-IPC</strong> 调主进程 46 个 router（01 章）。聊天界面流式渲染 agent 输出（CJK 友好 markdown + KaTeX），产物（pptx/pdf/html/图片）走 artifact 预览，交互式 MCP App 走 mcp-app-bridge，长任务有 task-monitor。Canvas / Writing / AI-Slides 是 legokit 配套的独立 webview 应用。</p>
+<h2 id="1-preload-preloadindexprettyjs4-contextbridge">1. preload 桥接（preload/index.pretty.js，4 个 contextBridge）</h2>
+<table>
+<thead>
+<tr>
+<th>bridge</th>
+<th>暴露</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>electronTRPC</code></td>
+<td>tRPC link</td>
+<td>渲染层所有业务调用走这里（trpc-electron）</td>
+</tr>
+<tr>
+<td><code>webUtils</code></td>
+<td>getPathForFile</td>
+<td>拖拽文件取真实路径</td>
+</tr>
+<tr>
+<td><code>desktopApi</code></td>
+<td>窗口/更新/缩放/截图/QuickPick/deeplink/credits…</td>
+<td>见下</td>
+</tr>
+<tr>
+<td><code>electron</code></td>
+<td>受控的 electron 能力</td>
+<td></td>
+</tr>
+<tr>
+<td>- <code>desktopApi</code> 方法（节选）：窗口控制（windowMinimize/Maximize/Close/IsMaximized/IsFullscreen/setWindowSize/isAlwaysOnTop）、更新（runMenuStyleUpdateCheck/downloadUpdate/installUpdate）、缩放（zoomIn/Out/Reset/getZoom）、<code>captureScreenshot</code>、<code>getHomedir</code>、<code>toggleDevTools</code>/<code>unlockDevTools</code>、QuickPick（quickPickHide/quickPickOpenTask）、deeplink（notifyDeeplinkRendererReady）、关闭确认（respondCloseAction）、增长营销（getCampaignBar/getCreditsGrowthCard/claimCreditsGrowthCardCheckin）、兼容检查（checkArchMismatch/checkOsCompatibility/checkDmgMount）。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="2">2. 渲染架构图</h2>
+<pre class="mermaid">flowchart TD
+  subgraph Renderer[React SPA]
+    Win[WindowContext] --&gt; CV[chat-view-inner 主聊天]
+    CV --&gt; MD[chat-markdown-renderer&lt;br/&gt;remark-cjk + KaTeX + streamdown]
+    CV --&gt; FM[render-file-mentions @file/@skill/@agent]
+    CV --&gt; ART[artifact-preview pptx/pdf/html/img]
+    CV --&gt; MCP[mcp-app-preview + use-mcp-app-bridge]
+    CV --&gt; TM[task-monitor-content 任务监视]
+    QP[quickpick 快捷任务]
+    VO[voice-overlay + use-voice-input]
+  end
+  Renderer -- electronTRPC(IPC) --&gt; Main[主进程 46 router]
+  Main -- broadcastStreamChunk/StreamStart(IPC) --&gt; CV
+  subgraph Legokit Webview
+    CAN[canvas/index.html]
+    WR[writing/index.html]
+    SL[ai-slides]
+  end
+</pre>
+<h2 id="3-ui-renderer-chunks">3. 关键 UI 模块（renderer chunks）</h2>
+<ul>
+<li><code>index-BLAH5viJ</code>（主 bundle，1407 符号）：路由/状态/tRPC 客户端装配。</li>
+<li><code>chat-view-inner</code>（485 符号）：聊天主视图，消费主进程 <code>chat:stream-start</code>/<code>stream-chunk</code> 广播（01 章 ProjectionPatchEmitter 的对端），增量渲染 assistant 消息分片、工具调用卡片、权限确认弹窗（对接 controlsRouter.respondToolApproval）。</li>
+<li><code>chat-markdown-renderer</code>（277 符号）：markdown 渲染，依赖 <code>remark-cjk-friendly</code>/<code>remark-cjk-friendly-gfm-strikethrough</code>/<code>@streamdown/cjk</code>（流式 + 中文友好）+ KaTeX（数学公式，字体在 assets）。</li>
+<li><code>artifact-preview</code>：产物预览（pptxgenjs/pdf-lib/sharp 在主进程生成，前端展示）。</li>
+<li><code>mcp-app-preview</code> + <code>use-mcp-app-bridge</code>：渲染 MCP-UI 工具的交互式应用（<code>@modelcontextprotocol/ext-apps</code>，05 章 getToolsWithUi）。</li>
+<li><code>task-monitor-content</code>：长任务/后台任务监视面板（呼应 detach/queue，01 章）。</li>
+<li><code>quickpick</code>：全局快捷任务启动器（<code>quickPickRouter.quickSubmitTask</code>，desktopApi.quickPickOpenTask）。</li>
+<li><code>render-file-mentions</code>：输入框 @ 提及（file/folder/skill/agent/tool/mcp-server/plugin）的解析与高亮（对应主进程 parseMainSessionMentions）。</li>
+<li><code>voice-overlay</code> / <code>use-voice-input</code>：语音输入浮层（08 章）。</li>
+<li><code>WindowContext</code>：多窗口/弹出聊天上下文（getOpenPopChatIds）。</li>
+</ul>
+<h2 id="4-legokit-webview">4. Legokit Webview 应用</h2>
+<ul>
+<li><code>canvas/index.html</code>、<code>writing/index.html</code>：canvas（设计/白板）与 writing（写作）legokit 的前端，配 <code>vite-server-worker.cjs</code> 实时预览（04 章）。AI-Slides 用 layouts/templates 渲染 PPT。</li>
+<li>这些是"模式应用"的 UI 层，与主聊天 SPA 分离，经各自 legokit MCP server 通信。</li>
+</ul>
+<h2 id="5">5. 字体 / 本地化 / 资源</h2>
+<ul>
+<li>内置字体：InstrumentSans、LibreBaskerville、KaTeX 全套（renderer/assets）。</li>
+<li>提示音：<code>sound-C2qsxXME.mp3</code>。</li>
+<li>79 个 <code>.lproj</code> 本地化目录（i18n key 在 main/renderer 双侧，如 <code>computerUse.*</code>、<code>menu.*</code>）。</li>
+<li>主题：<code>getOsPrefersDark</code> 跟随系统深浅色。</li>
+</ul>
+<h2 id="6">6. 数据流要点</h2>
+<ul>
+<li><strong>下行</strong>（主→渲染）：<code>broadcastStreamStart</code>/<code>broadcastStreamChunk</code>/<code>broadcastQueueUpdated</code>/<code>broadcastVmStatus</code>/<code>broadcastTitleUpdated</code> 经 IPC 推送（01/02/06 章）。</li>
+<li><strong>上行</strong>（渲染→主）：全部 tRPC mutation/query/subscription。</li>
+<li><strong>订阅</strong>：tRPC subscription（如 <code>mcp.mcpStatusSubscription</code>）经 observable 实时推 UI。</li>
+</ul></div>
+</section>
+<section class="section-block" id="trpc">
+<h2 class="plain">🧭 tRPC 接口浏览器（46 router / 504 procedure）</h2>
+<div class="toolbar">
+<input id="trpcSearch" placeholder="搜索 router 或 procedure 名，如 submitMessage / mcp / awareness ..."/>
+<div class="legend"><i class="proc query">query</i><i class="proc mutation">mutation</i><i class="proc subscription">subscription</i></div>
+</div>
+<div id="trpcList"><div class="trpc-card" data-group="对话/Agent" data-router="chatStreamRouter">
+<div class="trpc-head"><span class="rname">chatStreamRouter</span>
+<span class="rmeta">对话/Agent · 8 procedures · L88363</span></div>
+<div class="procs"><span class="proc unknown" title="? · L88364">submitMessage</span><span class="proc mutation" title="mutation · L88427">detachStream</span><span class="proc mutation" title="mutation · L88434">cancelStream</span><span class="proc mutation" title="mutation · L88441">removeFromQueue</span><span class="proc query" title="query · L88449">getQueue</span><span class="proc query" title="query · L88456">isTaskRunning</span><span class="proc query" title="query · L88464">getStreamingState</span><span class="proc query" title="query · L88469">getAllStreamingStates</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="controlsRouter">
+<div class="trpc-head"><span class="rname">controlsRouter</span>
+<span class="rmeta">对话/Agent · 6 procedures · L86638</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L86639">cancel</span><span class="proc query" title="query · L86650">isActive</span><span class="proc unknown" title="? · L86655">resolvePermission</span><span class="proc unknown" title="? · L86671">respondToolApproval</span><span class="proc mutation" title="mutation · L86687">simplifyCommandIntent</span><span class="proc mutation" title="mutation · L86695">setCurrentSessionModel</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="feedbackRouter">
+<div class="trpc-head"><span class="rname">feedbackRouter</span>
+<span class="rmeta">对话/Agent · 4 procedures · L86720</span></div>
+<div class="procs"><span class="proc unknown" title="? · L86721">like</span><span class="proc unknown" title="? · L86752">cancelLike</span><span class="proc unknown" title="? · L86785">cancelDislike</span><span class="proc unknown" title="? · L86818">dislike</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="chatBaseRouter">
+<div class="trpc-head"><span class="rname">chatBaseRouter</span>
+<span class="rmeta">对话/Agent · 26 procedures · L84927</span></div>
+<div class="procs"><span class="proc query" title="query · L84928">list</span><span class="proc query" title="query · L84963">listForMention</span><span class="proc query" title="query · L84985">listImChannelSidebar</span><span class="proc query" title="query · L85097">listRecent</span><span class="proc query" title="query · L85107">listArchived</span><span class="proc query" title="query · L85116">getOrCreateDefault</span><span class="proc query" title="query · L85128">get</span><span class="proc unknown" title="? · L85157">create</span><span class="proc mutation" title="mutation · L85339">rename</span><span class="proc mutation" title="mutation · L85354">updateTimestamp</span><span class="proc mutation" title="mutation · L85361">updateAdditionalDirectories</span><span class="proc mutation" title="mutation · L85383">archive</span><span class="proc mutation" title="mutation · L85396">restore</span><span class="proc mutation" title="mutation · L85403">archiveBatch</span><span class="proc mutation" title="mutation · L85413">delete</span><span class="proc mutation" title="mutation · L85446">deleteBatch</span><span class="proc query" title="query · L85482">searchByContent</span><span class="proc mutation" title="mutation · L85488">setChatGroupColor</span><span class="proc mutation" title="mutation · L85504">clearChatGroup</span><span class="proc mutation" title="mutation · L85526">unbindImChat</span><span class="proc query" title="query · L85544">listDeleted</span><span class="proc mutation" title="mutation · L85553">restoreDeleted</span><span class="proc mutation" title="mutation · L85572">permanentDelete</span><span class="proc mutation" title="mutation · L85589">emptyTrash</span><span class="proc query" title="query · L85605">getActiveLegokitId</span><span class="proc mutation" title="mutation · L85610">setActiveLegokitId</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="subChatRouter">
+<div class="trpc-head"><span class="rname">subChatRouter</span>
+<span class="rmeta">对话/Agent · 15 procedures · L85620</span></div>
+<div class="procs"><span class="proc query" title="query · L85621">getSubChat</span><span class="proc unknown" title="? · L85639">createSubChat</span><span class="proc mutation" title="mutation · L85652">updateSubChatMessages</span><span class="proc mutation" title="mutation · L85663">setContextUsageSnapshot</span><span class="proc mutation" title="mutation · L85676">rollbackToMessage</span><span class="proc mutation" title="mutation · L85721">updateSubChatSession</span><span class="proc mutation" title="mutation · L85729">updateSubChatMode</span><span class="proc unknown" title="? · L85737">updateMessageFeedback</span><span class="proc query" title="query · L85759">getSessionModelLevel</span><span class="proc mutation" title="mutation · L85766">setSessionModelLevel</span><span class="proc query" title="query · L85775">getWorkspaceModeId</span><span class="proc mutation" title="mutation · L85790">setWorkspaceModeId</span><span class="proc mutation" title="mutation · L85808">renameSubChat</span><span class="proc query" title="query · L85823">getLatestSessionIdByChatId</span><span class="proc mutation" title="mutation · L85832">deleteSubChat</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="messagesRouter">
+<div class="trpc-head"><span class="rname">messagesRouter</span>
+<span class="rmeta">对话/Agent · 5 procedures · L86599</span></div>
+<div class="procs"><span class="proc unknown" title="? · L86600">listBySubChat</span><span class="proc unknown" title="? · L86608">listAround</span><span class="proc unknown" title="? · L86616">searchInSubChat</span><span class="proc unknown" title="? · L86623">listAfterSubChat</span><span class="proc query" title="query · L86630">hasUserMessages</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="quickPickRouter">
+<div class="trpc-head"><span class="rname">quickPickRouter</span>
+<span class="rmeta">对话/Agent · 2 procedures · L86233</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L86234">quickSubmitTask</span><span class="proc query" title="query · L86279">getRecentTasksWithStatus</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="chatAnalyticsRouter">
+<div class="trpc-head"><span class="rname">chatAnalyticsRouter</span>
+<span class="rmeta">对话/Agent · 2 procedures · L86089</span></div>
+<div class="procs"><span class="proc unknown" title="? · L86090">exportChat</span><span class="proc query" title="query · L86197">getChatStats</span></div></div>
+<div class="trpc-card" data-group="对话/Agent" data-router="cliImportRouter">
+<div class="trpc-head"><span class="rname">cliImportRouter</span>
+<span class="rmeta">对话/Agent · 2 procedures · L86450</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L86451">scanCliSessions</span><span class="proc mutation" title="mutation · L86520">importCliSessions</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="permissionsRouter">
+<div class="trpc-head"><span class="rname">permissionsRouter</span>
+<span class="rmeta">工具/权限/连接器 · 4 procedures · L119059</span></div>
+<div class="procs"><span class="proc query" title="query · L119060">check</span><span class="proc query" title="query · L119069">checkAll</span><span class="proc mutation" title="mutation · L119081">requestAccess</span><span class="proc mutation" title="mutation · L119113">openSystemSettings</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="computerUseConnectorRouter">
+<div class="trpc-head"><span class="rname">computerUseConnectorRouter</span>
+<span class="rmeta">工具/权限/连接器 · 4 procedures · L118935</span></div>
+<div class="procs"><span class="proc query" title="query · L118936">getStatus</span><span class="proc mutation" title="mutation · L118937">enable</span><span class="proc mutation" title="mutation · L118940">install</span><span class="proc mutation" title="mutation · L118943">disable</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="appleConnectorsRouter">
+<div class="trpc-head"><span class="rname">appleConnectorsRouter</span>
+<span class="rmeta">工具/权限/连接器 · 4 procedures · L118833</span></div>
+<div class="procs"><span class="proc query" title="query · L118834">getStatus</span><span class="proc mutation" title="mutation · L118840">enable</span><span class="proc mutation" title="mutation · L118852">disable</span><span class="proc mutation" title="mutation · L118864">openSystemPreferences</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="microsoftConnectorRouter">
+<div class="trpc-head"><span class="rname">microsoftConnectorRouter</span>
+<span class="rmeta">工具/权限/连接器 · 6 procedures · L118881</span></div>
+<div class="procs"><span class="proc query" title="query · L118882">getStatus</span><span class="proc mutation" title="mutation · L118888">startAuth</span><span class="proc mutation" title="mutation · L118894">cancelAuth</span><span class="proc mutation" title="mutation · L118902">logout</span><span class="proc mutation" title="mutation · L118910">enableSub</span><span class="proc mutation" title="mutation · L118922">disableSub</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="filesRouter">
+<div class="trpc-head"><span class="rname">filesRouter</span>
+<span class="rmeta">工具/权限/连接器 · 12 procedures · L115501</span></div>
+<div class="procs"><span class="proc unknown" title="? · L115502">search</span><span class="proc mutation" title="mutation · L115510">clearCache</span><span class="proc query" title="query · L115515">checkPathsExist</span><span class="proc query" title="query · L115520">readFile</span><span class="proc mutation" title="mutation · L115525">writeFile</span><span class="proc unknown" title="? · L115531">writePastedText</span><span class="proc unknown" title="? · L115538">selectFilesAndFolders</span><span class="proc unknown" title="? · L115551">showSaveDialog</span><span class="proc query" title="query · L115565">readFolderContents</span><span class="proc query" title="query · L115571">extractPptxPreview</span><span class="proc query" title="query · L115576">extractHtmlPreview</span><span class="proc query" title="query · L115581">extractPdfPreview</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="externalRouter">
+<div class="trpc-head"><span class="rname">externalRouter</span>
+<span class="rmeta">工具/权限/连接器 · 11 procedures · L114754</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L114755">openInFinder</span><span class="proc mutation" title="mutation · L114766">openFileInEditor</span><span class="proc mutation" title="mutation · L114808">openExternal</span><span class="proc query" title="query · L114813">getLocalDevTools</span><span class="proc mutation" title="mutation · L114820">openLocalDevTool</span><span class="proc query" title="query · L114897">getLinkPreview</span><span class="proc query" title="query · L114920">getGoogleFaviconUrl</span><span class="proc query" title="query · L114939">getFaviconUrl</span><span class="proc mutation" title="mutation · L114958">openWithDefault</span><span class="proc query" title="query · L114970">getAppsForFile</span><span class="proc mutation" title="mutation · L114989">openWithApp</span></div></div>
+<div class="trpc-card" data-group="工具/权限/连接器" data-router="extensionRelayRouter">
+<div class="trpc-head"><span class="rname">extensionRelayRouter</span>
+<span class="rmeta">工具/权限/连接器 · 13 procedures · L102436</span></div>
+<div class="procs"><span class="proc query" title="query · L102437">getStatus</span><span class="proc mutation" title="mutation · L102438">start</span><span class="proc mutation" title="mutation · L102441">stop</span><span class="proc mutation" title="mutation · L102444">enable</span><span class="proc query" title="query · L102447">disable</span><span class="proc query" title="query · L102450">getExtensionInstallPath</span><span class="proc query" title="query · L102453">detectRecommendedBrowser</span><span class="proc mutation" title="mutation · L102454">openBrowserExtensions</span><span class="proc query" title="query · L102465">getBrowserApiVersion</span><span class="proc query" title="query · L102466">getEffectiveBrowserApiVersion</span><span class="proc query" title="query · L102467">getBrowserConnectionStatus</span><span class="proc mutation" title="mutation · L102468">setBrowserApiVersion</span><span class="proc mutation" title="mutation · L102475">setActiveBrowserClient</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="skillsRouter">
+<div class="trpc-head"><span class="rname">skillsRouter</span>
+<span class="rmeta">能力生态 · 31 procedures · L65502</span></div>
+<div class="procs"><span class="proc query" title="query · L65503">getSkillMarketUrl</span><span class="proc query" title="query · L65504">selectSkillZip</span><span class="proc query" title="query · L65505">list</span><span class="proc query" title="query · L65508">listEnabled</span><span class="proc query" title="query · L65511">listBuiltin</span><span class="proc query" title="query · L65512">listMarket</span><span class="proc unknown" title="? · L65513">listMarketPaginated</span><span class="proc query" title="query · L65525">listCategories</span><span class="proc query" title="query · L65526">getMarketSkillDetail</span><span class="proc query" title="query · L65531">getSkillDetail</span><span class="proc mutation" title="mutation · L65537">installMarket</span><span class="proc mutation" title="mutation · L65542">updateMarket</span><span class="proc mutation" title="mutation · L65547">enableBuiltin</span><span class="proc mutation" title="mutation · L65552">updateBuiltin</span><span class="proc mutation" title="mutation · L65557">disableBuiltin</span><span class="proc mutation" title="mutation · L65562">deleteUserSkill</span><span class="proc mutation" title="mutation · L65567">setSkillDisabled</span><span class="proc unknown" title="? · L65573">uploadSkill</span><span class="proc query" title="query · L65586">getSkillIconCached</span><span class="proc mutation" title="mutation · L65592">shareSkill</span><span class="proc query" title="query · L65597">getSkillPackage</span><span class="proc unknown" title="? · L65602">installFromZipBase64</span><span class="proc query" title="query · L65609">getSharedSkillDetail</span><span class="proc mutation" title="mutation · L65614">installSharedSkill</span><span class="proc unknown" title="? · L65620">installMarketDeeplink</span><span class="proc mutation" title="mutation · L65636">ensureA1Ready</span><span class="proc unknown" title="? · L65637">a1SkillInstall</span><span class="proc mutation" title="mutation · L65644">a1SkillUninstall</span><span class="proc unknown" title="? · L65649">checkSkillConflict</span><span class="proc query" title="query · L65656">getAnnouncements</span><span class="proc query" title="query · L65662">checkVersions</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="commandsRouter">
+<div class="trpc-head"><span class="rname">commandsRouter</span>
+<span class="rmeta">能力生态 · 7 procedures · L115924</span></div>
+<div class="procs"><span class="proc query" title="query · L115925">list</span><span class="proc query" title="query · L115939">listBuiltin</span><span class="proc mutation" title="mutation · L115940">enableBuiltin</span><span class="proc mutation" title="mutation · L115960">disableBuiltin</span><span class="proc mutation" title="mutation · L115974">deleteUserCommand</span><span class="proc mutation" title="mutation · L115995">importCommand</span><span class="proc query" title="query · L116032">getContent</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="pluginsRouter">
+<div class="trpc-head"><span class="rname">pluginsRouter</span>
+<span class="rmeta">能力生态 · 24 procedures · L116662</span></div>
+<div class="procs"><span class="proc query" title="query · L116663">listMarket</span><span class="proc query" title="query · L116664">listInstalled</span><span class="proc mutation" title="mutation · L116665">installMarket</span><span class="proc mutation" title="mutation · L116670">updateMarket</span><span class="proc mutation" title="mutation · L116678">forkPlugin</span><span class="proc mutation" title="mutation · L116683">uninstall</span><span class="proc query" title="query · L116688">listPluginSkills</span><span class="proc query" title="query · L116689">listPluginCommands</span><span class="proc query" title="query · L116690">listAll</span><span class="proc query" title="query · L116691">getDetail</span><span class="proc query" title="query · L116697">getFileContent</span><span class="proc query" title="query · L116703">getPluginSkillDetail</span><span class="proc unknown" title="? · L116709">toggle</span><span class="proc unknown" title="? · L116719">toggleConnector</span><span class="proc query" title="query · L116726">checkConnectorConflict</span><span class="proc unknown" title="? · L116732">resolveConnectorConflict</span><span class="proc mutation" title="mutation · L116742">retryConnector</span><span class="proc mutation" title="mutation · L116748">deleteCustom</span><span class="proc query" title="query · L116753">listEnabledCommands</span><span class="proc unknown" title="? · L116754">importZip</span><span class="proc mutation" title="mutation · L116764">exportZip</span><span class="proc query" title="query · L116770">listConnectors</span><span class="proc unknown" title="? · L116771">applyConnectorGuidedSetup</span><span class="proc mutation" title="mutation · L116781">installFromPath</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="legokitRouter">
+<div class="trpc-head"><span class="rname">legokitRouter</span>
+<span class="rmeta">能力生态 · 19 procedures · L121441</span></div>
+<div class="procs"><span class="proc query" title="query · L121442">getAll</span><span class="proc query" title="query · L121443">getEnabled</span><span class="proc query" title="query · L121444">getModeAvailability</span><span class="proc query" title="query · L121445">getModeEnabledMap</span><span class="proc query" title="query · L121446">getActiveLegokitsForMode</span><span class="proc query" title="query · L121451">getById</span><span class="proc query" title="query · L121460">getWelcomePromptExamplePreview</span><span class="proc mutation" title="mutation · L121478">setEnabled</span><span class="proc unknown" title="? · L121486">setModeLegokitEnabled</span><span class="proc subscription" title="subscription · L121495">onLegokitChange</span><span class="proc query" title="query · L121498">getDownloadState</span><span class="proc query" title="query · L121505">isReady</span><span class="proc mutation" title="mutation · L121512">download</span><span class="proc query" title="query · L121521">getGpuState</span><span class="proc query" title="query · L121526">shouldUseGpu</span><span class="proc mutation" title="mutation · L121533">reportGpuCrash</span><span class="proc mutation" title="mutation · L121538">setGpuDisabled</span><span class="proc mutation" title="mutation · L121544">resetGpuCrashCount</span><span class="proc mutation" title="mutation · L121549">reloadRuntime</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="agentsRouter">
+<div class="trpc-head"><span class="rname">agentsRouter</span>
+<span class="rmeta">能力生态 · 6 procedures · L115688</span></div>
+<div class="procs"><span class="proc unknown" title="? · L115689">list</span><span class="proc unknown" title="? · L115690">listEnabled</span><span class="proc query" title="query · L115691">get</span><span class="proc unknown" title="? · L115710">create</span><span class="proc unknown" title="? · L115748">update</span><span class="proc unknown" title="? · L115791">delete</span></div></div>
+<div class="trpc-card" data-group="能力生态" data-router="slidesTemplatesRouter">
+<div class="trpc-head"><span class="rname">slidesTemplatesRouter</span>
+<span class="rmeta">能力生态 · 12 procedures · L123069</span></div>
+<div class="procs"><span class="proc query" title="query · L123070">list</span><span class="proc query" title="query · L123071">listForSelector</span><span class="proc query" title="query · L123076">getDetail</span><span class="proc mutation" title="mutation · L123081">delete</span><span class="proc mutation" title="mutation · L123086">rename</span><span class="proc unknown" title="? · L123092">export</span><span class="proc mutation" title="mutation · L123102">import</span><span class="proc query" title="query · L123108">readReferenceHtml</span><span class="proc query" title="query · L123114">getDraftDetail</span><span class="proc query" title="query · L123119">readDraftReferenceHtml</span><span class="proc mutation" title="mutation · L123125">commitDraft</span><span class="proc mutation" title="mutation · L123130">discardDraft</span></div></div>
+<div class="trpc-card" data-group="MCP" data-router="mcpRouter">
+<div class="trpc-head"><span class="rname">mcpRouter</span>
+<span class="rmeta">MCP · 25 procedures · L89171</span></div>
+<div class="procs"><span class="proc query" title="query · L89172">getAllMcpConfig</span><span class="proc query" title="query · L89173">getBuiltinMcpServers</span><span class="proc unknown" title="? · L89174">enableBuiltinMcpServer</span><span class="proc mutation" title="mutation · L89181">disableBuiltinMcpServer</span><span class="proc unknown" title="? · L89186">saveBuiltinMcpServerParameters</span><span class="proc mutation" title="mutation · L89193">importMcpConfig</span><span class="proc mutation" title="mutation · L89198">deleteCustomMcpServer</span><span class="proc mutation" title="mutation · L89203">updateCustomMcpServer</span><span class="proc mutation" title="mutation · L89209">applyGuidedSetupConfig</span><span class="proc mutation" title="mutation · L89215">toggleCustomMcpServer</span><span class="proc mutation" title="mutation · L89221">startMcpAdaptorAuth</span><span class="proc mutation" title="mutation · L89226">clearMcpAuthToken</span><span class="proc query" title="query · L89231">mcpStatusSubscription</span><span class="proc query" title="query · L89232">getMcpStatusSnapshot</span><span class="proc query" title="query · L89233">refreshMcpStatus</span><span class="proc query" title="query · L89234">getMcpServerLogPath</span><span class="proc mutation" title="mutation · L89239">readMcpResource</span><span class="proc unknown" title="? · L89245">callMcpServerTool</span><span class="proc query" title="query · L89252">getToolMeta</span><span class="proc query" title="query · L89257">getToolsWithUi</span><span class="proc query" title="query · L89258">getMcpAdaptorUrl</span><span class="proc mutation" title="mutation · L89259">installMarketMcpServer</span><span class="proc mutation" title="mutation · L89264">uninstallMarketMcpServer</span><span class="proc query" title="query · L89269">checkMcpEnableConflict</span><span class="proc unknown" title="? · L89274">resolveMcpEnableConflict</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="channelsRouter">
+<div class="trpc-head"><span class="rname">channelsRouter</span>
+<span class="rmeta">IM/调度 · 31 procedures · L117002</span></div>
+<div class="procs"><span class="proc query" title="query · L117003">imPolicyStatus</span><span class="proc query" title="query · L117004">getAllStatuses</span><span class="proc query" title="query · L117005">getChannelErrors</span><span class="proc query" title="query · L117006">getStatus</span><span class="proc query" title="query · L117011">getMSTeamsConfig</span><span class="proc mutation" title="mutation · L117036">saveMSTeamsConfig</span><span class="proc query" title="query · L117082">getDingTalkConfig</span><span class="proc query" title="query · L117093">getFeishuConfig</span><span class="proc mutation" title="mutation · L117105">saveDingTalkConfig</span><span class="proc mutation" title="mutation · L117138">dingtalkStartQR</span><span class="proc mutation" title="mutation · L117162">dingtalkPollQR</span><span class="proc query" title="query · L117222">getLarkConfig</span><span class="proc mutation" title="mutation · L117235">saveFeishuConfig</span><span class="proc mutation" title="mutation · L117255">saveLarkConfig</span><span class="proc mutation" title="mutation · L117275">feishuStartQR</span><span class="proc mutation" title="mutation · L117304">larkStartQR</span><span class="proc mutation" title="mutation · L117334">feishuPollQR</span><span class="proc mutation" title="mutation · L117412">larkPollQR</span><span class="proc mutation" title="mutation · L117528">deleteConfig</span><span class="proc mutation" title="mutation · L117575">restart</span><span class="proc mutation" title="mutation · L117598">setEnabled</span><span class="proc mutation" title="mutation · L117643">checkXiaoqBindingConflict</span><span class="proc query" title="query · L117660">getWecomBotConfig</span><span class="proc mutation" title="mutation · L117668">saveWecomBotConfig</span><span class="proc query" title="query · L117684">getWeixinConfig</span><span class="proc mutation" title="mutation · L117691">weixinStartQR</span><span class="proc mutation" title="mutation · L117708">weixinPollQR</span><span class="proc query" title="query · L117756">getXiaoqConfig</span><span class="proc mutation" title="mutation · L117762">saveXiaoqConfig</span><span class="proc query" title="query · L117788">getProgressUpdatesEnabled</span><span class="proc mutation" title="mutation · L117796">setProgressUpdatesEnabled</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="channelPairingRouter">
+<div class="trpc-head"><span class="rname">channelPairingRouter</span>
+<span class="rmeta">IM/调度 · 8 procedures · L117826</span></div>
+<div class="procs"><span class="proc query" title="query · L117827">checkChatPairingStatus</span><span class="proc mutation" title="mutation · L117862">generateCode</span><span class="proc query" title="query · L117890">listPairings</span><span class="proc mutation" title="mutation · L117902">removePairing</span><span class="proc query" title="query · L117948">listPendingRequests</span><span class="proc unknown" title="? · L117949">approvePendingRequest</span><span class="proc unknown" title="? · L118004">ignorePendingRequest</span><span class="proc mutation" title="mutation · L118018">requestRepairingFromChat</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="wecomRouter">
+<div class="trpc-head"><span class="rname">wecomRouter</span>
+<span class="rmeta">IM/调度 · 5 procedures · L116835</span></div>
+<div class="procs"><span class="proc query" title="query · L116836">getGatewayStatus</span><span class="proc query" title="query · L116852">getKfLinks</span><span class="proc query" title="query · L116884">listContacts</span><span class="proc query" title="query · L116890">listImChats</span><span class="proc mutation" title="mutation · L116891">resetUserChat</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="wecomBotRouter">
+<div class="trpc-head"><span class="rname">wecomBotRouter</span>
+<span class="rmeta">IM/调度 · 2 procedures · L116919</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L116920">generateQRCode</span><span class="proc query" title="query · L116942">pollQRCodeResult</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="cronRouter">
+<div class="trpc-head"><span class="rname">cronRouter</span>
+<span class="rmeta">IM/调度 · 11 procedures · L118758</span></div>
+<div class="procs"><span class="proc unknown" title="? · L118759">list</span><span class="proc query" title="query · L118768">getTask</span><span class="proc unknown" title="? · L118773">create</span><span class="proc unknown" title="? · L118783">update</span><span class="proc mutation" title="mutation · L118792">delete</span><span class="proc mutation" title="mutation · L118797">toggleEnabled</span><span class="proc mutation" title="mutation · L118803">runNow</span><span class="proc unknown" title="? · L118809">getAllRunLogs</span><span class="proc mutation" title="mutation · L118817">debugSimulateError</span><span class="proc unknown" title="? · L118822">getRunLogs</span><span class="proc query" title="query · L118829">getCronChatGroups</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="dwsRouter">
+<div class="trpc-head"><span class="rname">dwsRouter</span>
+<span class="rmeta">IM/调度 · 11 procedures · L121558</span></div>
+<div class="procs"><span class="proc query" title="query · L121559">getStatus</span><span class="proc query" title="query · L121560">getSetupState</span><span class="proc mutation" title="mutation · L121561">enable</span><span class="proc mutation" title="mutation · L121562">install</span><span class="proc mutation" title="mutation · L121563">disable</span><span class="proc query" title="query · L121564">uninstall</span><span class="proc query" title="query · L121565">login</span><span class="proc query" title="query · L121566">logout</span><span class="proc query" title="query · L121567">getLoginAuthUrl</span><span class="proc query" title="query · L121570">getUserProfile</span><span class="proc mutation" title="mutation · L121571">checkUpdate</span></div></div>
+<div class="trpc-card" data-group="IM/调度" data-router="larkRouter">
+<div class="trpc-head"><span class="rname">larkRouter</span>
+<span class="rmeta">IM/调度 · 13 procedures · L121574</span></div>
+<div class="procs"><span class="proc query" title="query · L121575">getStatus</span><span class="proc query" title="query · L121576">getSetupState</span><span class="proc query" title="query · L121577">getInstalledSkillNames</span><span class="proc mutation" title="mutation · L121578">enable</span><span class="proc mutation" title="mutation · L121579">install</span><span class="proc mutation" title="mutation · L121580">disable</span><span class="proc mutation" title="mutation · L121581">uninstall</span><span class="proc mutation" title="mutation · L121582">startConfigInit</span><span class="proc mutation" title="mutation · L121583">cancelConfigInit</span><span class="proc mutation" title="mutation · L121586">waitConfigInitDone</span><span class="proc mutation" title="mutation · L121587">login</span><span class="proc mutation" title="mutation · L121588">logout</span><span class="proc mutation" title="mutation · L121589">checkUpdate</span></div></div>
+<div class="trpc-card" data-group="记忆/觉知" data-router="awarenessRouter">
+<div class="trpc-head"><span class="rname">awarenessRouter</span>
+<span class="rmeta">记忆/觉知 · 24 procedures · L120536</span></div>
+<div class="procs"><span class="proc query" title="query · L120537">getBootstrapFiles</span><span class="proc query" title="query · L120560">getSoulPresets</span><span class="proc query" title="query · L120586">getMemoryFiles</span><span class="proc query" title="query · L120656">readFile</span><span class="proc unknown" title="? · L120673">writeFile</span><span class="proc mutation" title="mutation · L120701">deleteBootstrapFile</span><span class="proc query" title="query · L120724">getIndexStatus</span><span class="proc mutation" title="mutation · L120751">rebuildIndex</span><span class="proc mutation" title="mutation · L120768">initFiles</span><span class="proc mutation" title="mutation · L120796">resetBootstrapFiles</span><span class="proc mutation" title="mutation · L120835">clearMemory</span><span class="proc mutation" title="mutation · L120865">exportZip</span><span class="proc mutation" title="mutation · L120901">importZip</span><span class="proc mutation" title="mutation · L120961">triggerReflection</span><span class="proc unknown" title="? · L120993">getNudgeLogs</span><span class="proc query" title="query · L121012">getNudgeStats</span><span class="proc unknown" title="? · L121047">getSkillSuggestions</span><span class="proc query" title="query · L121073">getSkillSuggestion</span><span class="proc mutation" title="mutation · L121100">dismissSkillSuggestion</span><span class="proc mutation" title="mutation · L121120">startSkillEvolution</span><span class="proc mutation" title="mutation · L121165">confirmSkillEvolution</span><span class="proc query" title="query · L121209">getSkillSuggestionsBySubChat</span><span class="proc unknown" title="? · L121226">updateSuggestionStatus</span><span class="proc mutation" title="mutation · L121253">checkSkillEvolutionOutcomes</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="authRouter">
+<div class="trpc-head"><span class="rname">authRouter</span>
+<span class="rmeta">账号/模型/系统 · 9 procedures · L90378</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L90379">login</span><span class="proc query" title="query · L90499">status</span><span class="proc mutation" title="mutation · L90555">qoderLogout</span><span class="proc unknown" title="? · L90601">feedback</span><span class="proc query" title="query · L90661">getModels</span><span class="proc unknown" title="? · L90689">addCustomModel</span><span class="proc unknown" title="? · L90706">deleteCustomModel</span><span class="proc query" title="query · L90715">getUsage</span><span class="proc query" title="query · L90816">getModelActivities</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="settingsRouter">
+<div class="trpc-head"><span class="rname">settingsRouter</span>
+<span class="rmeta">账号/模型/系统 · 77 procedures · L113448</span></div>
+<div class="procs"><span class="proc query" title="query · L113449">getSidebarChatGroups</span><span class="proc mutation" title="mutation · L113450">setSidebarChatGroup</span><span class="proc mutation" title="mutation · L113455">reorderSidebarChatGroups</span><span class="proc query" title="query · L113462">getAutoLaunch</span><span class="proc mutation" title="mutation · L113463">setAutoLaunch</span><span class="proc query" title="query · L113472">getModelLevel</span><span class="proc mutation" title="mutation · L113476">setModelLevel</span><span class="proc query" title="query · L113483">getVmBackend</span><span class="proc mutation" title="mutation · L113484">setVmBackend</span><span class="proc query" title="query · L113513">getVmTestEnv</span><span class="proc mutation" title="mutation · L113514">setVmTestEnv</span><span class="proc mutation" title="mutation · L113523">enableVmPrerequisites</span><span class="proc query" title="query · L113542">getHyperVPendingRestart</span><span class="proc mutation" title="mutation · L113547">restartApp</span><span class="proc mutation" title="mutation · L113550">restartComputer</span><span class="proc query" title="query · L113560">getMcpLazyLoad</span><span class="proc mutation" title="mutation · L113561">setMcpLazyLoad</span><span class="proc query" title="query · L113568">getMcpAppsEnabled</span><span class="proc mutation" title="mutation · L113569">setMcpAppsEnabled</span><span class="proc query" title="query · L113576">getPromptSuggestionsEnabled</span><span class="proc mutation" title="mutation · L113577">setPromptSuggestionsEnabled</span><span class="proc query" title="query · L113584">getToolCallsExpandedByDefault</span><span class="proc mutation" title="mutation · L113585">setToolCallsExpandedByDefault</span><span class="proc query" title="query · L113592">getImChannelToolCallsVisible</span><span class="proc mutation" title="mutation · L113593">setImChannelToolCallsVisible</span><span class="proc query" title="query · L113600">getWidgetEnabled</span><span class="proc mutation" title="mutation · L113601">setWidgetEnabled</span><span class="proc query" title="query · L113608">getPopWindowEnabled</span><span class="proc mutation" title="mutation · L113609">setPopWindowEnabled</span><span class="proc query" title="query · L113616">getUsageOverviewAggregateRemainingPercent</span><span class="proc mutation" title="mutation · L113617">setUsageOverviewAggregateRemainingPercent</span><span class="proc query" title="query · L113624">getQuickPickEnabled</span><span class="proc mutation" title="mutation · L113625">setQuickPickEnabled</span><span class="proc query" title="query · L113644">getQuickPickShortcut</span><span class="proc mutation" title="mutation · L113648">setQuickPickShortcut</span><span class="proc mutation" title="mutation · L113664">suspendQuickPickShortcut</span><span class="proc query" title="query · L113667">resumeQuickPickShortcut</span><span class="proc query" title="query · L113670">getQuickPickShortcutMode</span><span class="proc query" title="query · L113674">getQuickPickDoubleTapConfig</span><span class="proc unknown" title="? · L113682">setQuickPickShortcutMode</span><span class="proc mutation" title="mutation · L113707">setQuickPickDoubleTapConfig</span><span class="proc query" title="query · L113722">getVoiceInputEnabled</span><span class="proc mutation" title="mutation · L113723">setVoiceInputEnabled</span><span class="proc query" title="query · L113745">getVoiceInputOverlayEnabled</span><span class="proc mutation" title="mutation · L113746">setVoiceInputOverlayEnabled</span><span class="proc query" title="query · L113753">getVoiceInputShortcutMode</span><span class="proc mutation" title="mutation · L113757">setVoiceInputShortcutMode</span><span class="proc query" title="query · L113782">getVoiceInputSingleKey</span><span class="proc mutation" title="mutation · L113786">setVoiceInputSingleKey</span><span class="proc query" title="query · L113798">getVoiceInputShortcut</span><span class="proc mutation" title="mutation · L113802">setVoiceInputShortcut</span><span class="proc mutation" title="mutation · L113823">suspendVoiceInputShortcut</span><span class="proc query" title="query · L113826">resumeVoiceInputShortcut</span><span class="proc query" title="query · L113829">getVoiceInputFnStatus</span><span class="proc query" title="query · L113832">getAppshotShortcutMode</span><span class="proc mutation" title="mutation · L113833">setAppshotShortcutMode</span><span class="proc query" title="query · L113856">getPreventSleep</span><span class="proc mutation" title="mutation · L113857">setPreventSleep</span><span class="proc query" title="query · L113885">getConnectorDisabledTools</span><span class="proc mutation" title="mutation · L113889">setConnectorDisabledTools</span><span class="proc query" title="query · L113900">getCloseWindowAction</span><span class="proc mutation" title="mutation · L113904">setCloseWindowAction</span><span class="proc query" title="query · L113911">getInstallType</span><span class="proc query" title="query · L113915">getDataPolicy</span><span class="proc mutation" title="mutation · L113930">updateDataPolicy</span><span class="proc query" title="query · L113958">getAwarenessMode</span><span class="proc mutation" title="mutation · L113966">setAwarenessMode</span><span class="proc query" title="query · L113987">getNudgeEnabled</span><span class="proc mutation" title="mutation · L113988">setNudgeEnabled</span><span class="proc query" title="query · L114000">getFeatureFlags</span><span class="proc query" title="query · L114015">getQoderWorkConnectorEnabled</span><span class="proc mutation" title="mutation · L114019">setQoderWorkConnectorEnabled</span><span class="proc query" title="query · L114038">getProxy</span><span class="proc mutation" title="mutation · L114048">setProxy</span><span class="proc mutation" title="mutation · L114112">testProxy</span><span class="proc query" title="query · L114117">getAwarenessGateConfig</span><span class="proc query" title="query · L114124">getAwarenessSettingsVisible</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="debugRouter">
+<div class="trpc-head"><span class="rname">debugRouter</span>
+<span class="rmeta">账号/模型/系统 · 8 procedures · L115588</span></div>
+<div class="procs"><span class="proc query" title="query · L115589">getSystemInfo</span><span class="proc query" title="query · L115605">getDbStats</span><span class="proc mutation" title="mutation · L115616">clearChats</span><span class="proc mutation" title="mutation · L115622">clearAllData</span><span class="proc mutation" title="mutation · L115628">logout</span><span class="proc mutation" title="mutation · L115631">openUserDataFolder</span><span class="proc mutation" title="mutation · L115637">openProjectDataDir</span><span class="proc query" title="query · L115666">testRegionEndpoints</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="downloadRouter">
+<div class="trpc-head"><span class="rname">downloadRouter</span>
+<span class="rmeta">账号/模型/系统 · 16 procedures · L116507</span></div>
+<div class="procs"><span class="proc unknown" title="? · L116508">start</span><span class="proc mutation" title="mutation · L116564">cancel</span><span class="proc query" title="query · L116571">getActive</span><span class="proc query" title="query · L116574">triggerManifestCheck</span><span class="proc query" title="query · L116577">getManifestCheckState</span><span class="proc query" title="query · L116578">getVmUpdateState</span><span class="proc query" title="query · L116579">triggerVmUpdate</span><span class="proc query" title="query · L116582">isVmReady</span><span class="proc query" title="query · L116585">startVirtualHost</span><span class="proc query" title="query · L116588">isVirtualHostReady</span><span class="proc query" title="query · L116592">getVmInfo</span><span class="proc query" title="query · L116593">checkVmHealth</span><span class="proc query" title="query · L116619">checkWorkspaceFiles</span><span class="proc query" title="query · L116634">getBootLog</span><span class="proc query" title="query · L116637">getVmStatus</span><span class="proc mutation" title="mutation · L116640">cleanWorkspace</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="trackingRouter">
+<div class="trpc-head"><span class="rname">trackingRouter</span>
+<span class="rmeta">账号/模型/系统 · 3 procedures · L116791</span></div>
+<div class="procs"><span class="proc unknown" title="? · L116792">track</span><span class="proc unknown" title="? · L116804">trackImmediate</span><span class="proc unknown" title="? · L116816">trackBatch</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="proUpgradeRouter">
+<div class="trpc-head"><span class="rname">proUpgradeRouter</span>
+<span class="rmeta">账号/模型/系统 · 2 procedures · L123260</span></div>
+<div class="procs"><span class="proc query" title="query · L123261">getEligibility</span><span class="proc mutation" title="mutation · L123265">claim</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="contextRouter">
+<div class="trpc-head"><span class="rname">contextRouter</span>
+<span class="rmeta">账号/模型/系统 · 1 procedures · L123270</span></div>
+<div class="procs"><span class="proc query" title="query · L123271">getUsage</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="migrationRouter">
+<div class="trpc-head"><span class="rname">migrationRouter</span>
+<span class="rmeta">账号/模型/系统 · 2 procedures · L121767</span></div>
+<div class="procs"><span class="proc query" title="query · L121768">getStatus</span><span class="proc mutation" title="mutation · L121776">migrateSubChatOnDemand</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="dynamicTextRouter">
+<div class="trpc-head"><span class="rname">dynamicTextRouter</span>
+<span class="rmeta">账号/模型/系统 · 5 procedures · L121739</span></div>
+<div class="procs"><span class="proc query" title="query · L121740">getText</span><span class="proc query" title="query · L121746">getErrorText</span><span class="proc query" title="query · L121752">getModelMeta</span><span class="proc query" title="query · L121758">getVersion</span><span class="proc mutation" title="mutation · L121759">forceRefresh</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="clientBlockRouter">
+<div class="trpc-head"><span class="rname">clientBlockRouter</span>
+<span class="rmeta">账号/模型/系统 · 1 procedures · L121592</span></div>
+<div class="procs"><span class="proc query" title="query · L121593">getStatus</span></div></div>
+<div class="trpc-card" data-group="账号/模型/系统" data-router="embedRouter">
+<div class="trpc-head"><span class="rname">embedRouter</span>
+<span class="rmeta">账号/模型/系统 · 3 procedures · L121606</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L121607">getIframeConfig</span><span class="proc mutation" title="mutation · L121715">startIdpAuth</span><span class="proc mutation" title="mutation · L121735">cancelIdpAuth</span></div></div>
+<div class="trpc-card" data-group="语音" data-router="asrRouter">
+<div class="trpc-head"><span class="rname">asrRouter</span>
+<span class="rmeta">语音 · 5 procedures · L121973</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L121974">start</span><span class="proc mutation" title="mutation · L121977">sendAudio</span><span class="proc mutation" title="mutation · L121987">stop</span><span class="proc query" title="query · L121998">getActiveSession</span><span class="proc unknown" title="? · L122001">polish</span></div></div>
+<div class="trpc-card" data-group="语音" data-router="voiceOnboardingRouter">
+<div class="trpc-head"><span class="rname">voiceOnboardingRouter</span>
+<span class="rmeta">语音 · 6 procedures · L122475</span></div>
+<div class="procs"><span class="proc query" title="query · L122476">getPermissionStatus</span><span class="proc mutation" title="mutation · L122480">requestMicrophone</span><span class="proc mutation" title="mutation · L122491">requestAccessibility</span><span class="proc unknown" title="? · L122502">getFnInterceptors</span><span class="proc mutation" title="mutation · L122512">openInterceptorAction</span><span class="proc query" title="query · L122519">getInterceptorIcons</span></div></div>
+<div class="trpc-card" data-group="语音" data-router="djiMicRouter">
+<div class="trpc-head"><span class="rname">djiMicRouter</span>
+<span class="rmeta">语音 · 4 procedures · L122050</span></div>
+<div class="procs"><span class="proc mutation" title="mutation · L122051">registerShortcut</span><span class="proc mutation" title="mutation · L122054">unregisterShortcut</span><span class="proc query" title="query · L122057">checkAccessibility</span><span class="proc mutation" title="mutation · L122064">simulateVolumeUp</span></div></div>
+<div class="trpc-card" data-group="其它" data-router="projectsRouter">
+<div class="trpc-head"><span class="rname">projectsRouter</span>
+<span class="rmeta">其它 · 9 procedures · L3131</span></div>
+<div class="procs"><span class="proc query" title="query · L3132">getLaunchDirectory</span><span class="proc query" title="query · L3133">list</span><span class="proc query" title="query · L3134">getOrCreateDefault</span><span class="proc query" title="query · L3147">get</span><span class="proc mutation" title="mutation · L3152">create</span><span class="proc mutation" title="mutation · L3174">rename</span><span class="proc mutation" title="mutation · L3183">delete</span><span class="proc mutation" title="mutation · L3188">getOrCreateDefaultWorkspace</span><span class="proc query" title="query · L3209">getGitBranch</span></div></div></div>
+</section>
+<section class="section-block" id="symbols">
+<h2 class="plain">🔣 函数级索引 Function Index</h2>
+<p>关键类/函数（含真实位置，全部 <b>26,919</b> 个符号见 <code>research/symbol-index-full.json</code>）：</p>
+<table class="tbl"><thead><tr><th>符号</th><th>位置</th><th>职责</th></tr></thead><tbody><tr><td class="mono kk">UnifiedChatExecutor.executeTask</td><td class="mono">main/main.pretty.js:83535</td><td>Agent loop 主体：组装 SDK options、起 runtime、消费事件流</td></tr>
+<tr><td class="mono kk">ChatSessionService.submitOrQueue</td><td class="mono">main/main.pretty.js:78668</td><td>运行中入队/空闲直跑的队列控制</td></tr>
+<tr><td class="mono kk">ChatSessionService.executeNow</td><td class="mono">main/main.pretty.js:78764</td><td>委托 runner.executeTask 启动一轮</td></tr>
+<tr><td class="mono kk">createCanUseToolCallback</td><td class="mono">main/main.pretty.js:42749</td><td>工具权限门：allow/deny + plan 限制 + 挂起确认</td></tr>
+<tr><td class="mono kk">registerPendingApproval / resolvePendingApproval</td><td class="mono">main/main.pretty.js:42568</td><td>权限确认的 Promise 挂起与回填</td></tr>
+<tr><td class="mono kk">ProcessTransport.buildArgs</td><td class="mono">sdk/index.pretty.js:410</td><td>qodercli 命令行参数（stream-json 协议）</td></tr>
+<tr><td class="mono kk">ProcessTransport._doInitialize</td><td class="mono">sdk/index.pretty.js:167</td><td>spawn qodercli + auth payload + stdio</td></tr>
+<tr><td class="mono kk">McpClientPool.connect</td><td class="mono">main/main.pretty.js:40649</td><td>MCP 上游连接（stdio/SSE/HTTP）+ 健康度</td></tr>
+<tr><td class="mono kk">LegokitRegistry</td><td class="mono">main/main.pretty.js:80007</td><td>Legokit 注册/模式/执行约束</td></tr>
+<tr><td class="mono kk">LegokitIsolatedRuntimeRunner.start</td><td class="mono">main/main.pretty.js:72321</td><td>Legokit MCP 独立子进程隔离运行</td></tr>
+<tr><td class="mono kk">getMemoryDb / initSchema</td><td class="mono">main/main.pretty.js:60128</td><td>记忆 SQLite + FTS5 trigram 索引</td></tr>
+<tr><td class="mono kk">MemoryReflectionTask (worker)</td><td class="mono">chunks/memory-reflection-*.js:69</td><td>记忆反思 agent：重整 MEMORY.md/USER.md</td></tr>
+<tr><td class="mono kk">ChannelManager / ReplyDispatcher</td><td class="mono">main/main.pretty.js:46444</td><td>IM 消息入站 + agent 输出回推渠道</td></tr>
+<tr><td class="mono kk">ExtensionRelayServer</td><td class="mono">main/main.pretty.js:100455</td><td>浏览器扩展 WebSocket 中继(:16789)</td></tr>
+<tr><td class="mono kk">startHvkitMac</td><td class="mono">main/main.pretty.js:70490</td><td>VM 沙箱(hvkit) 经 node-pty 启动</td></tr>
+<tr><td class="mono kk">AuthManager.getAccessTokenForCLI</td><td class="mono">main/main.pretty.js:6948</td><td>给 qodercli 取/刷新 access token</td></tr>
+<tr><td class="mono kk">writeSkillEvolutionSuggestions</td><td class="mono">main/main.pretty.js:69038</td><td>技能进化建议落库（待用户批准）</td></tr>
+<tr><td class="mono kk">scheduleDelayedTasks</td><td class="mono">main/main.pretty.js:125828</td><td>启动后 22 个子系统错峰初始化</td></tr>
+<tr><td class="mono kk">createAppRouter</td><td class="mono">main/main.pretty.js:123342</td><td>组装 46 个 tRPC router 的根路由</td></tr>
+<tr><td class="mono kk">builtin tool registry</td><td class="mono">main/main.pretty.js:71210</td><td>qoder_start_task/send_message/cron/memory/skill_* 等内置工具注册</td></tr></tbody></table>
+<h3 style="color:var(--acc);margin-top:24px">各 bundle 符号统计</h3>
+<table class="tbl"><thead><tr><th>文件（美化后）</th><th>符号数</th><th>构成</th></tr></thead><tbody><tr><td class="mono">renderer/vendor-BBDTXesZ.pretty.js</td><td class="num">16124</td><td class="kinds">function:11621 · method:3604 · arrow:631 · class:268</td></tr>
+<tr><td class="mono">main/main.pretty.js</td><td class="num">7540</td><td class="kinds">function:4591 · method:2458 · arrow:291 · class:200</td></tr>
+<tr><td class="mono">renderer/index-BLAH5viJ.pretty.js</td><td class="num">1407</td><td class="kinds">function:937 · arrow:442 · method:24 · class:4</td></tr>
+<tr><td class="mono">renderer/chat-view-inner-CWOSflM_.pretty.js</td><td class="num">485</td><td class="kinds">function:356 · arrow:112 · method:15 · class:2</td></tr>
+<tr><td class="mono">renderer/chat-markdown-renderer-CN_-iUhI.pretty.js</td><td class="num">277</td><td class="kinds">function:193 · arrow:71 · method:10 · class:3</td></tr>
+<tr><td class="mono">renderer/render-file-mentions-BKP8rNE9.pretty.js</td><td class="num">254</td><td class="kinds">function:202 · arrow:52</td></tr>
+<tr><td class="mono">sdk/index.pretty.js</td><td class="num">127</td><td class="kinds">function:113 · arrow:14</td></tr>
+<tr><td class="mono">sdk/sdk-index.pretty.js</td><td class="num">127</td><td class="kinds">function:113 · arrow:14</td></tr>
+<tr><td class="mono">preload/index.pretty.js</td><td class="num">72</td><td class="kinds">arrow:72</td></tr>
+<tr><td class="mono">chunks/index-D7Q35Ybv.pretty.js</td><td class="num">49</td><td class="kinds">function:46 · arrow:3</td></tr>
+<tr><td class="mono">chunks/server-C83v1fyR.pretty.js</td><td class="num">46</td><td class="kinds">method:34 · function:8 · arrow:3 · class:1</td></tr>
+<tr><td class="mono">chunks/index-CK9cVIia.pretty.js</td><td class="num">41</td><td class="kinds">function:20 · method:18 · arrow:2 · class:1</td></tr>
+<tr><td class="mono">chunks/memory-reflection-DaXqRn3i.pretty.js</td><td class="num">37</td><td class="kinds">function:28 · method:7 · class:1 · arrow:1</td></tr>
+<tr><td class="mono">renderer/use-mcp-app-bridge-Bn8ciZ-Z.pretty.js</td><td class="num">37</td><td class="kinds">function:31 · arrow:6</td></tr>
+<tr><td class="mono">chunks/index-CLQQqn2t.pretty.js</td><td class="num">26</td><td class="kinds">function:23 · arrow:3</td></tr>
+<tr><td class="mono">chunks/index-CrSi6RWY.pretty.js</td><td class="num">26</td><td class="kinds">function:11 · method:7 · arrow:6 · class:2</td></tr>
+<tr><td class="mono">sdk/browser_index.pretty.js</td><td class="num">26</td><td class="kinds">function:22 · arrow:4</td></tr>
+<tr><td class="mono">renderer/globals-Bh-CQJnt.pretty.js</td><td class="num">25</td><td class="kinds">function:21 · arrow:4</td></tr>
+<tr><td class="mono">renderer/task-monitor-content-DcXAR6rP.pretty.js</td><td class="num">24</td><td class="kinds">function:19 · arrow:5</td></tr>
+<tr><td class="mono">chunks/index-Bhiy1Cb8.pretty.js</td><td class="num">17</td><td class="kinds">function:12 · class:2 · method:2 · arrow:1</td></tr>
+<tr><td class="mono">chunks/index-DifduEwM.pretty.js</td><td class="num">15</td><td class="kinds">function:14 · arrow:1</td></tr>
+<tr><td class="mono">chunks/server-CS2C6rzp.pretty.js</td><td class="num">15</td><td class="kinds">method:10 · function:4 · class:1</td></tr>
+<tr><td class="mono">chunks/server-CHTa_P20.pretty.js</td><td class="num">13</td><td class="kinds">method:11 · class:1 · function:1</td></tr>
+<tr><td class="mono">chunks/server-v5LzjRqO.pretty.js</td><td class="num">13</td><td class="kinds">function:6 · method:5 · arrow:1 · class:1</td></tr>
+<tr><td class="mono">chunks/server-ColZGfYN.pretty.js</td><td class="num">12</td><td class="kinds">method:10 · class:1 · function:1</td></tr>
+<tr><td class="mono">chunks/server-D8CXlCtM.pretty.js</td><td class="num">12</td><td class="kinds">method:10 · class:1 · function:1</td></tr>
+<tr><td class="mono">chunks/server-DUScHz84.pretty.js</td><td class="num">12</td><td class="kinds">method:10 · class:1 · function:1</td></tr>
+<tr><td class="mono">renderer/voice-overlay-CKzjM7up.pretty.js</td><td class="num">10</td><td class="kinds">arrow:6 · function:4</td></tr>
+<tr><td class="mono">sdk/bridge_index.pretty.js</td><td class="num">8</td><td class="kinds">function:7 · arrow:1</td></tr>
+<tr><td class="mono">chunks/legokit-discovery-DKAxVrmD.pretty.js</td><td class="num">7</td><td class="kinds">function:7</td></tr>
+<tr><td class="mono">renderer/WindowContext-X-Gq7sk1.pretty.js</td><td class="num">7</td><td class="kinds">function:6 · arrow:1</td></tr>
+<tr><td class="mono">renderer/artifact-preview-BkPyUkop.pretty.js</td><td class="num">7</td><td class="kinds">function:6 · arrow:1</td></tr>
+<tr><td class="mono">renderer/quickpick-pccAbBT3.pretty.js</td><td class="num">7</td><td class="kinds">arrow:5 · function:2</td></tr>
+<tr><td class="mono">sdk/protocol_index.pretty.js</td><td class="num">3</td><td class="kinds">function:3</td></tr>
+<tr><td class="mono">renderer/mcp-app-preview-DjK7Ch0N.pretty.js</td><td class="num">3</td><td class="kinds">function:3</td></tr>
+<tr><td class="mono">renderer/use-voice-input-CMlxsI7j.pretty.js</td><td class="num">3</td><td class="kinds">arrow:2 · function:1</td></tr>
+<tr><td class="mono">chunks/index-Ptir0Q9g.pretty.js</td><td class="num">2</td><td class="kinds">function:2</td></tr>
+<tr><td class="mono">renderer/skill-examples-loader-BeZDi6VE.pretty.js</td><td class="num">2</td><td class="kinds">function:2</td></tr>
+<tr><td class="mono">main/index.pretty.js</td><td class="num">1</td><td class="kinds">arrow:1</td></tr></tbody></table>
+</section>
+<section class="section-block" id="method">
+<h2 class="plain">🔬 方法与边界 Methodology</h2>
+<div class="md">
+<ul>
+<li><b>来源</b>：<code>QoderWork-arm64.dmg</code> → 挂载 → 解包 <code>app.asar</code> → 用 js-beautify 美化主进程/chunks/preload/SDK/renderer 共 45 个 bundle（main.pretty.js 12.8 万行）。</li>
+<li><b>索引</b>：脚本提取 46 router / 504 procedure（<code>trpc-router-index.json</code>）与 26,919 个 function/class/method/arrow 符号（<code>symbol-index-full.json</code>）。</li>
+<li><b>取证</b>：逐功能域顺调用链精读 2–4 层，所有论断标注 <code>文件:行号</code>（行号为美化后）。</li>
+<li><b>边界</b>：代码经压缩，<b>局部变量名已混淆</b>（如 <code>r/e/n/i</code>），但<b>类名、函数名、router/procedure 名、字符串、系统提示词大多保留</b>，故函数级结论可靠；少数内联闭包以行号近似标注。</li>
+<li><b>未深入</b>：<code>qodercli</code> 为 Bun 打包的原生二进制，未做反汇编——其内部 agent 决策属黑盒，但对外协议（CLI 参数 + stream-json 事件）已由 SDK 侧完全还原。</li>
+<li><b>合规</b>：仅静态阅读本地已下载产物用于架构理解，未运行抓包、未触碰服务端、未绕过任何鉴权。</li>
+</ul>
+</div>
+</section>
+<div class="foot">
+    QoderWork v0.5.9 函数级逆向架构梳理 · 证据目录 <code>research/</code> · 仅供技术研究<br/>
+    生成自 13 个功能域 markdown + tRPC/符号索引
+  </div>
+</main>
+</div>
+<script>
+mermaid.initialize({startOnLoad:true, theme:'dark', securityLevel:'loose',
+  themeVariables:{fontSize:'13px', fontFamily:'SF Mono, ui-monospace, Menlo, monospace'},
+  flowchart:{useMaxWidth:true, htmlLabels:true, curve:'basis'},
+  sequence:{useMaxWidth:true}});
+
+// scroll-spy nav
+const navItems=[...document.querySelectorAll('.nav-item')];
+const idMap={}; navItems.forEach(a=>{const id=a.getAttribute('href').slice(1); idMap[id]=a;});
+const obs=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    navItems.forEach(n=>n.classList.remove('active'));
+    const a=idMap[e.target.id]; if(a)a.classList.add('active');
+  }});
+},{rootMargin:'-10% 0px -80% 0px',threshold:0});
+document.querySelectorAll('section[id], .hero[id]').forEach(s=>obs.observe(s));
+
+// trpc search
+const si=document.getElementById('trpcSearch'); const cards=[...document.querySelectorAll('.trpc-card')];
+si&&si.addEventListener('input',()=>{
+  const q=si.value.trim().toLowerCase();
+  cards.forEach(c=>{
+    const hit = !q || c.dataset.router.toLowerCase().includes(q) ||
+      [...c.querySelectorAll('.proc')].some(p=>p.textContent.toLowerCase().includes(q)) ||
+      c.dataset.group.toLowerCase().includes(q);
+    c.style.display = hit?'':'none';
+    if(q){ c.querySelectorAll('.proc').forEach(p=>{
+      p.style.opacity = p.textContent.toLowerCase().includes(q)?'1':'.28';}); }
+    else c.querySelectorAll('.proc').forEach(p=>p.style.opacity='1');
+  });
+});
+</script>
+</body>
+</html>
