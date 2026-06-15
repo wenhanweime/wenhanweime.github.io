@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wake 面试 QA：云端 Agent、Job Agent 与 AI 职责网络</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --ink: #17202a;
+  --muted: #667085;
+  --line: #d9dee7;
+  --soft: #eef2f6;
+  --accent: #1463ff;
+  --accent-dark: #0b3b94;
+  --warn: #a15c00;
+  --warn-bg: #fff7ed;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.66;
+}
+a { color: var(--accent-dark); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.site-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.site-title {
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.site-nav a {
+  padding: 6px 9px;
+  border-radius: 6px;
+  color: #344054;
+  font-size: 13px;
+}
+.site-nav a:hover {
+  background: var(--soft);
+  text-decoration: none;
+}
+.page-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 30px 22px 56px;
+}
+.hero {
+  padding: 34px 0 20px;
+}
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent-dark);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.hero h1 {
+  margin: 0 0 14px;
+  font-size: 34px;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+.hero p {
+  max-width: 900px;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.badge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--soft);
+  color: #344054;
+  font-size: 13px;
+}
+.content-card {
+  padding: 28px 32px 36px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  overflow: hidden;
+}
+h2, h3, h4 {
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+h2 {
+  margin: 34px 0 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+h3 {
+  margin: 26px 0 10px;
+  font-size: 19px;
+}
+p { margin: 10px 0; }
+ul, ol { padding-left: 1.4em; }
+li { margin: 5px 0; }
+blockquote {
+  margin: 16px 0;
+  padding: 10px 16px;
+  border-left: 4px solid var(--accent);
+  background: #f8fbff;
+  color: #344054;
+}
+table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+th {
+  background: #f1f5f9;
+  font-weight: 650;
+  white-space: nowrap;
+}
+tr:nth-child(even) td { background: #fbfcfe; }
+.takes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin: 16px 0 22px;
+}
+.take {
+  padding: 15px 16px;
+  min-height: 120px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+.take b {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.take span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.qa {
+  margin: 18px 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+.qa h3 {
+  margin-top: 0;
+}
+.label {
+  display: inline-flex;
+  margin-right: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.answer {
+  margin-top: 10px;
+}
+.answer strong {
+  color: #111827;
+}
+.punchline {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-weight: 650;
+}
+.source-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 820px) {
+  .site-header-inner { align-items: flex-start; flex-direction: column; }
+  .site-nav { justify-content: flex-start; }
+  .hero h1 { font-size: 28px; }
+  .content-card { padding: 22px 18px; }
+}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-title" href="/qoder-agent-research-pages/">Qoder Research Pages</a>
+      <nav class="site-nav" aria-label="站点导航">
+        <a href="/qoder-agent-research-pages/">首页</a>
+        <a href="/qoder-agent-research-pages/wake-interview-qa/">Wake 面试 QA</a>
+        <a href="/qoder-agent-research-pages/agent-research/">面试研究总报告</a>
+        <a href="/qoder-agent-research-pages/agent-compare/">三方对比</a>
+        <a href="/qoder-agent-research-pages/digital-employee-market/">数字员工赛道</a>
+        <a href="/qoder-agent-research-pages/qoderwork-deep-dive/">QoderWork 架构</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <p class="eyebrow">Wake Interview QA</p>
+      <h1>Wake 面试 QA：云端 Agent、Job Agent 与 AI 职责网络</h1>
+      <p>这不是一份功能清单，而是一组可直接用于面试表达的产品判断。核心观点：Wake 不应该被讲成另一个 Coding Agent，也不应该只讲成云端版 OpenClaw/Hermes；它更应该被定义为技术组织里的可治理 AI 职责网络。</p>
+      <div class="badges">
+        <span class="badge">云端 Agent</span>
+        <span class="badge">Job Agent</span>
+        <span class="badge">AI 数字员工</span>
+        <span class="badge">工程健康</span>
+        <span class="badge">组织级治理</span>
+      </div>
+    </section>
+
+    <article class="content-card">
+      <h2>一组可以先抛出来的犀利观点</h2>
+      <div class="takes">
+        <div class="take"><b>1. issue-to-PR 已经是基线，不是壁垒。</b><span>能开 PR、能跑测试、能修简单 bug，已经被 GitHub、Codex、Cursor、Jules、Devin 拉成市场标配。</span></div>
+        <div class="take"><b>2. Task 是执行单位，Job 才是责任单位。</b><span>Wake 如果只接单次任务，就会被通用 Coding Agent 夹击；它要卖的是长期负责某类工程健康结果。</span></div>
+        <div class="take"><b>3. 代码是 Wake 的训练场，不是边界。</b><span>代码任务反馈快、可审核、ROI 清楚，所以适合做 wedge；但终局不是“帮工程师写代码”。</span></div>
+        <div class="take"><b>4. 云端 OpenClaw/Hermes 是底座，不是终局。</b><span>云端电脑、浏览器、终端和文件系统很关键，但它只是 action runtime；上面还要有职责、治理和组织协同。</span></div>
+        <div class="take"><b>5. 真正的终局不是超级 Agent，而是 Agent Workforce。</b><span>组织工作天然有分工、权限、验收、升级路径和人类 owner，单一万能 Agent 更像 demo 心智。</span></div>
+        <div class="take"><b>6. 企业买的不是自动化，而是可控的自动化。</b><span>权限、审计、审批、回放、归因、回滚，比“模型更聪明”更接近 ToB 成交条件。</span></div>
+        <div class="take"><b>7. AgentOps 是门票，不是产品终点。</b><span>trace、日志、eval、policy 都必须有，但 Wake 不能只卖平台；它必须绑定具体职责结果。</span></div>
+        <div class="take"><b>8. Repo maintainer 也不再是空地。</b><span>Jules scheduled tasks、auto CI fixer、PR feedback iteration 已经证明这个方向有人在做，Wake 必须上升到组织级职责闭环。</span></div>
+        <div class="take"><b>9. 最强架构不是“看屏幕点按钮”。</b><span>Computer-use 解决长尾工具；高频关键任务应优先走 API、CLI、MCP 和 durable workflow。</span></div>
+        <div class="take"><b>10. Wake 的第一版产品单位应是 responsibility contract。</b><span>职责、触发、权限、产物、验收、指标、升级路径，比“创建一个 agent”更适合企业理解和采购。</span></div>
+        <div class="take"><b>11. Wake 不要抢 IDE cockpit。</b><span>Cursor、Claude Code、Codex 已经占住开发时入口；Wake 更适合接管开发外持续 owner：CI、依赖、release、incident follow-up。</span></div>
+        <div class="take"><b>12. 差异化会从 runtime 转向组织记忆。</b><span>runtime 会商品化，真正难复制的是团队规范、历史失败模式、责任地图、审批习惯和指标体系。</span></div>
+      </div>
+
+      <h2>面试 QA</h2>
+
+      <section class="qa">
+        <h3><span class="label">Q1</span>你怎么一句话定义 Wake？</h3>
+        <div class="answer">
+          <p><strong>Wake 不是另一个 AI 助手，也不是单纯 Coding Agent；它应该是面向技术组织的可治理 AI 职责网络。</strong></p>
+          <p>更完整地说，Wake 让团队把持续发生、跨系统、可审核、可度量的技术职责委派给一组长期运行的 AI owners，并让它们和人类团队协作交付结果。</p>
+          <div class="punchline">一句话面试版：竞品大多在卖“agent 能帮你做事”，Wake 应该卖“某个持续技术职责终于有人长期负责”。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q2</span>Wake 和 Devin、Codex、Cursor、Claude Code 最大区别是什么？</h3>
+        <div class="answer">
+          <p>Devin、Codex、Cursor、Claude Code 更像高能力工程执行者，擅长从一个 prompt、issue、PR 或 IDE 上下文出发完成单次工程任务。Wake 如果也这么讲，就没有清晰差异化。</p>
+          <p>Wake 应该切到另一个层级：不是“我派一个任务给 AI”，而是“团队把一个长期没人稳定负责的技术职责交给 AI owner”。例如 CI Steward、Dependency Upgrade Owner、Release Readiness Coordinator、Incident Follow-up Owner。</p>
+          <div class="punchline">差异不是会不会写代码，而是谁对持续结果负责。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q3</span>为什么你一直强调 Task 和 Job 的区别？</h3>
+        <div class="answer">
+          <p>因为这是 Wake 定位的底层分水岭。</p>
+          <table>
+            <tr><th>维度</th><th>Task Agent</th><th>Job Agent</th></tr>
+            <tr><td>工作单位</td><td>一次任务</td><td>长期职责</td></tr>
+            <tr><td>典型问题</td><td>帮我修这个 bug</td><td>长期维护 main branch CI 绿色</td></tr>
+            <tr><td>结束条件</td><td>任务完成</td><td>指标持续达标</td></tr>
+            <tr><td>记忆价值</td><td>弱，做完即散</td><td>强，越做越懂团队</td></tr>
+            <tr><td>商业价值</td><td>替人省一次时间</td><td>替组织承担一类责任</td></tr>
+          </table>
+          <div class="punchline">Task 是执行单位，Job 是责任单位。Wake 要赢，必须从执行外包升级到责任委派。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q4</span>如果 Wake 最初想做云端 OpenClaw/Hermes，这个方向对吗？</h3>
+        <div class="answer">
+          <p>方向对，而且比聊天助手、IDE 插件、普通 issue-to-PR agent 更接近下一代 agent 的底层形态。</p>
+          <p>云端 OpenClaw/Hermes 的价值在于，它把 agent 从“生成文本”推进到“操作真实工作环境”：浏览器、终端、文件、repo、CI、文档、内部系统。它也天然适合异步执行、持久 workspace、权限控制和企业审计。</p>
+          <p>但它不能停在“云端万能电脑”。那只是 action runtime，不是完整产品。</p>
+          <div class="punchline">云端 OpenClaw/Hermes 是 Wake 的发动机，不是 Wake 的车。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q5</span>那下一代 Agent 的“终局形态”是什么？</h3>
+        <div class="answer">
+          <p>我不认为终局是一个无所不能的单体超级 Agent。更现实的终局是 Agent OS + Agent Workforce。</p>
+          <p>也就是：底层有云端 runtime，可以操作浏览器、终端、文件和工具；中间有 durable execution、memory、MCP/A2A、eval、observability、policy；上层是面向组织的岗位和职责，能被授权、被审计、被评估、被升级。</p>
+          <div class="punchline">未来不是“一个 Agent 替代所有人”，而是“一组可治理 AI 岗位进入组织分工”。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q6</span>当前最值得学习的开源 Agent 架构是什么？</h3>
+        <div class="answer">
+          <p>如果只选一个组合，我会看 <strong>LangGraph + OpenHands</strong>。</p>
+          <p>LangGraph 代表长期、有状态、可恢复、可插入人工审批的 agent workflow。OpenHands 代表软件工程 agent 的真实执行环境，包括代码、终端、浏览器、测试和云端扩展。再叠加 MCP、长期记忆、policy、observability，才接近 Wake 需要的底座。</p>
+          <p>Letta/MemGPT 值得看长期记忆，CrewAI 值得看 role-based team 心智，SWE-agent 值得看 agent-computer interface 和评估方式，但它们都不是单独终局。</p>
+          <div class="punchline">开源里不要找“一个最强 Agent”，要拼出一套生产级 agent stack。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q7</span>闭源产品里你最看重谁？</h3>
+        <div class="answer">
+          <p>我会拆开看：</p>
+          <ul>
+            <li>Claude Code：terminal-first、项目上下文、工具调用和 coding loop 很强。</li>
+            <li>Codex / ChatGPT Agent：cloud sandbox、多入口、审批和安全边界值得学。</li>
+            <li>Devin：AI software engineer 和 agent fleet 的心智最强。</li>
+            <li>Cursor：IDE + background agents + Bugbot，把开发者日常入口抓得很牢。</li>
+            <li>Jules：GitHub-native async maintainer，已经直接打到 repo maintenance。</li>
+            <li>Manus：证明 cloud computer-use 心智成立，但也暴露通用云端 agent 太宽、太难解释 ROI。</li>
+          </ul>
+          <div class="punchline">Wake 不该复制其中某一个，而要把强 runtime、组织职责和治理控制面组合起来。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q8</span>为什么 Wake 第一阶段应该从代码和工程健康切入？</h3>
+        <div class="answer">
+          <p>因为代码是最适合证明“AI 可以承担持续职责”的场景。</p>
+          <p>代码有编译、测试、CI、diff、review comment、PR、rollback，这些都天然可验证。企业也更容易接受一个 AI 先读 repo、看 CI log、开 draft PR，而不是直接操作客户数据、财务系统或生产数据库。</p>
+          <p>但代码只是训练场。Wake 的最终边界不应该是写代码，而应该是 engineering responsibilities：CI、依赖、release、incident、security remediation、engineering knowledge。</p>
+          <div class="punchline">代码是最早能闭环的责任域，不是 Wake 的天花板。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q9</span>Wake 的 MVP 应该做什么？</h3>
+        <div class="answer">
+          <p>我会从 <strong>Team CI Steward</strong> 或 <strong>Repo Reliability Engineer</strong> 切。</p>
+          <p>它的 responsibility contract 可以这样定义：</p>
+          <ul>
+            <li>职责：维护 main branch CI 绿色。</li>
+            <li>触发：CI failure、PR failure、scheduled scan。</li>
+            <li>权限：读 repo 和 CI log，开 branch 和 draft PR，不能直接 merge。</li>
+            <li>产物：diagnosis、fix PR、test evidence、risk label、rollback note。</li>
+            <li>指标：MTTR、自动修复率、review 通过率、复发率、节省的人类时间。</li>
+          </ul>
+          <div class="punchline">第一版不要做“创建任意 Agent”，而要做一个窄到能被衡量的岗位。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q10</span>Wake 用户到底是谁？</h3>
+        <div class="answer">
+          <p>Wake 的用户不是单点个人，而是四层人：</p>
+          <table>
+            <tr><th>层级</th><th>角色</th><th>诉求</th></tr>
+            <tr><td>直接操作者</td><td>工程师、Tech Lead、SRE、QA、AppSec</td><td>把低价值、重复、跨系统的工程任务交出去</td></tr>
+            <tr><td>责任拥有者</td><td>EM、研发负责人、平台负责人</td><td>看 Wake 是否改善团队指标</td></tr>
+            <tr><td>实施者</td><td>Platform、DevEx、Developer Productivity</td><td>把 agent 标准化接入工程平台</td></tr>
+            <tr><td>审批者</td><td>Security、IT、Legal、Compliance</td><td>控制权限、数据、审计和风险</td></tr>
+          </table>
+          <div class="punchline">Wake 不是卖给一个工程师的玩具，而是进入技术组织分工体系的基础设施。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q11</span>为什么组织协同比单 Agent 能力更重要？</h3>
+        <div class="answer">
+          <p>因为组织里的工作从来不是一个目标、一个权限、一个上下文、一个评价标准。它涉及 owner、reviewer、approver、escalation contact，也涉及不同系统里的事实来源。</p>
+          <p>多 agent 协作本身不稀奇，容易变成噱头。真正有价值的是：每个 agent 有清晰职责边界，有共享但不污染的上下文，有主责 agent 负责最终结果，有人类在关键节点审批，有完整 audit trail。</p>
+          <div class="punchline">多 Agent 的价值不在数量，而在责任、权限、上下文和验收能被组织化。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q12</span>Wake 应该怎么避免和内部 Code Work / Work / Jarvis 打架？</h3>
+        <div class="answer">
+          <p>边界应该按工作单位和责任归属切，而不是按“能不能写代码”切。</p>
+          <p>Code Work 更偏开发时工具和单次工程执行，Work/Jarvis 更偏个人或通用办公任务。Wake 应该占住组织级、长期、可度量、可治理的岗位职责。它可以调用 Code Work、OpenClaw/Hermes 或其他 runtime，但自己的产品抽象必须是 responsibility contract 和 control plane。</p>
+          <div class="punchline">Wake 不抢执行入口，Wake 抢责任归属。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q13</span>企业为什么会为 Wake 付费？</h3>
+        <div class="answer">
+          <p>企业不会长期为“看起来很聪明”付费，只会为可控的结果付费。</p>
+          <p>Wake 的付费理由应该来自几个可量化指标：CI MTTR 下降、依赖 backlog 清空、release delay 减少、incident action items 闭环、review load 降低、senior engineer 被打断次数减少。</p>
+          <p>如果能证明一个 Wake owner 长期负责一类脏活，并稳定改善团队指标，它的钱就不只来自软件预算，还可能来自人力效率预算和平台工程预算。</p>
+          <div class="punchline">不要卖“AI 很强”，要卖“这个责任以前没人负责，现在有了 owner，而且指标变好了”。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q14</span>Wake 最大风险是什么？</h3>
+        <div class="answer">
+          <p>最大风险不是模型不够强，而是产品定位滑成“又一个通用 Agent 工作台”。</p>
+          <p>如果 Wake 什么都能做，最后用户会不知道为什么买、该让谁买、怎么衡量成功。另一个风险是只做 runtime 或 AgentOps，变成底层工具，被 LangGraph、OpenHands、MCP 生态、云厂商和开源框架持续压价。</p>
+          <div class="punchline">Wake 的危险不是做小，而是做宽以后失去责任锚点。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q15</span>如果面试官问你会怎么做产品路线图？</h3>
+        <div class="answer">
+          <p>我会分三阶段：</p>
+          <ol>
+            <li><strong>单一职责做深：</strong>先做 Team CI Steward，把诊断、低风险修复、draft PR、证据、审批和指标跑通。</li>
+            <li><strong>复制到相邻职责：</strong>扩展到 Dependency Owner、Flaky Test Investigator、Release Readiness Coordinator。</li>
+            <li><strong>形成职责网络：</strong>做 Responsibility Map、Agent Team View、Org-level Governance & Metrics，让 Wake 从单岗位变成技术组织的 AI responsibility network。</li>
+          </ol>
+          <div class="punchline">路线图不是从更多能力开始，而是从一个最窄责任闭环开始。</div>
+        </div>
+      </section>
+
+      <section class="qa">
+        <h3><span class="label">Q16</span>你最后会给 Wake 一个什么定位？</h3>
+        <div class="answer">
+          <blockquote>Wake is a governed AI responsibility network for technical organizations.</blockquote>
+          <p>中文就是：Wake 是面向技术组织的可治理 AI 职责网络，让团队把持续发生、跨角色、跨系统、可审核、可度量的技术职责委派给长期运行的 AI owners，并让它们和人类团队协作交付结果。</p>
+          <div class="punchline">面试收束句：Wake 不应该成为“云端万能助手”，而应该成为技术组织里第一个真正可被授权、被约束、被评估、被复盘的 AI 同事体系。</div>
+        </div>
+      </section>
+
+      <h2>一页式收束</h2>
+      <table>
+        <tr><th>问题</th><th>一句话答案</th></tr>
+        <tr><td>Wake 是什么？</td><td>技术组织的可治理 AI 职责网络。</td></tr>
+        <tr><td>不是做什么？</td><td>不是另一个 Coding Agent、不是 issue-to-PR bot、不是单纯云端电脑。</td></tr>
+        <tr><td>为什么先做代码？</td><td>代码反馈快、可审核、ROI 可量化、权限边界清楚。</td></tr>
+        <tr><td>为什么不能止步于代码？</td><td>代码是训练场，最终价值是组织级工程职责闭环。</td></tr>
+        <tr><td>最强竞品压力在哪里？</td><td>Devin/Codex/Cursor/Claude Code 抢执行能力，Jules 抢 repo maintainer。</td></tr>
+        <tr><td>Wake 怎么绕开？</td><td>不拼单次任务能力，拼长期责任、组织协同、治理和指标。</td></tr>
+        <tr><td>最建议 MVP？</td><td>Team CI Steward / Repo Reliability Engineer。</td></tr>
+        <tr><td>最值得学的架构？</td><td>LangGraph + OpenHands + MCP/A2A + memory + governance。</td></tr>
+        <tr><td>最终形态？</td><td>Agent OS + Agent Workforce，不是单体超级 Agent。</td></tr>
+      </table>
+
+      <p class="source-note">整理日期：2026-06-16。内容基于 Wake 竞品调研、AI 数字员工赛道研究、OpenClaw/Hermes/QoderWork 对比，以及下一代 agent 架构讨论沉淀。</p>
+    </article>
+  </main>
+</body>
+</html>
